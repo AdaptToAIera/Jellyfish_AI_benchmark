@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Large preview | AI jellyfish benchmark</title>
+  <meta name="description" content="Large-window preview for an AI-generated jellyfish HTML canvas output." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="viewer-page">
+  <header class="viewer-bar">
+    <div>
+      <div class="prefs-bar" aria-label="Display preferences">
+        <div class="segmented" role="group" aria-label="Language">
+          <button type="button" data-pref-lang="en">EN</button>
+          <button type="button" data-pref-lang="sk">SK</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-pref-theme="dark">Dark</button>
+          <button type="button" data-pref-theme="light">Light</button>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Benchmark navigation">
+        <a href="index.html"><span data-i18n="en">Review</span><span data-i18n="sk">Recenzia</span></a>
+        <a href="gallery.html"><span data-i18n="en">HTML previews</span><span data-i18n="sk">HTML náhľady</span></a>
+        <a href="compare.html"><span data-i18n="en">Head to head</span><span data-i18n="sk">Priame porovnanie</span></a>
+      </nav>
+      <h1 id="viewerTitle">Large preview</h1>
+      <p id="viewerMeta" class="dim"></p>
+    </div>
+    <div class="action-row">
+      <a class="button-link" id="viewerCompare" href="compare.html"><span data-i18n="en">Compare</span><span data-i18n="sk">Porovnať</span></a>
+      <a class="button-link primary" id="viewerSource" href="#" target="_blank" rel="noopener"><span data-i18n="en">Open original</span><span data-i18n="sk">Otvoriť originál</span></a>
+    </div>
+  </header>
+  <main class="viewer-shell">
+    <iframe id="viewerFrame" title="Large HTML preview" sandbox="allow-scripts"></iframe>
+  </main>
+  <script src="data/models-data.js"></script>
+  <script src="preferences.js"></script>
+  <script src="explore.js"></script>
+</body>
+</html>

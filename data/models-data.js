@@ -1,0 +1,495 @@
+window.MODELS_DATA = {
+  "prompt": "create a colourful animated deep sea scene with glowing jellyfish using HTML canvas",
+  "updated": "2026-09-15",
+  "methodology": [
+    "Prompt adherence: whether the result is clearly a colorful animated deep sea canvas scene with glowing jellyfish.",
+    "Visual quality: composition, glow, depth, color discipline, and whether the scene feels alive.",
+    "Animation: natural motion, pulsing, tentacle behavior, timing stability, and interaction.",
+    "Code quality: structure, object state, resize handling, device pixel ratio, timing model, and avoidable runtime risks.",
+    "Performance robustness: amount of drawing work, caps, reduced-motion/performance guards, and predictable frame behavior.",
+    "Responsiveness: whether the canvas adapts to different viewport sizes, pixel densities, embedded previews, and larger viewing windows without losing composition or sharpness.",
+    "UX/UI: controls, readability, interaction design, and whether added interface elements help the scene."
+  ],
+  "models": [
+    {
+      "id": "qwen38_27b_q8",
+      "name": "Qwen 3.8 27B Q8",
+      "type": "Lokálny",
+      "file": "models/qwen38_27b_q8.html",
+      "rank": 1,
+      "scores": {
+        "visual": 10,
+        "code": 9,
+        "animation": 9,
+        "creativity": 10,
+        "ux": 10,
+        "performance": 9,
+        "responsiveness": 10
+      },
+      "status": "OK",
+      "tags": [
+        "vizuálny víťaz",
+        "najlepší lokálny model",
+        "UX"
+      ],
+      "summary": "Najsilnejší celkový výstup. Nie je to len canvas animácia, ale hotové interaktívne morské dioráma s HUD, hĺbkomerom, prúdom, bublinami, rybami, ripple efektmi a premyslenou interakciou.",
+      "codeNote": "Používa dt, DPR, performance guard, prefers-reduced-motion, dátovo udržiavaný stav objektov a limity počtu entít. Veľmi dobrá technická disciplína na lokálny model.",
+      "uxNote": "Výrazne nad rámec promptu: pauza, prúd, spawn medúzy, scrollovanie hĺbky, FPS a zóny oceánu. UI pomáha zážitku, nie je iba ozdobou.",
+      "responsiveNote": "Výborná: fullscreen canvas, DPR, resize handling, mobilné scroll/interakcie a UI, ktoré sa prispôsobuje priestoru.",
+      "responsiveNoteEn": "Excellent: fullscreen canvas, DPR, resize handling, mobile-friendly interactions, and UI that adapts to available space."
+    },
+    {
+      "id": "chatgpt_5_6_sol_high",
+      "name": "ChatGPT 5.6 Sol high",
+      "type": "Cloud",
+      "file": "models/chatgpt_5_6_sol_high.html",
+      "rank": 2,
+      "scores": {
+        "visual": 9,
+        "code": 9,
+        "animation": 9,
+        "creativity": 9,
+        "ux": 8,
+        "performance": 8,
+        "responsiveness": 9
+      },
+      "status": "OK",
+      "tags": [
+        "najlepší čistý cloud",
+        "vyvážený",
+        "profesionálny"
+      ],
+      "summary": "Najvyváženejší cloudový výstup. Má silnú kompozíciu, farebné oblaky, parallax, častice, bubliny, svetelné lúče a morskú siluetu bez toho, aby sa scéna rozpadla na efekty.",
+      "codeNote": "Stabilná štruktúra, dobrá práca s DPR, responzívnosťou a objektovým stavom. Menej hravé než Qwen38, ale veľmi čisto zrealizované.",
+      "uxNote": "Skôr vizuálna scéna než nástroj. Interakcia cez kurzor je decentná a neruší.",
+      "responsiveNote": "Veľmi dobrá: fullscreen canvas, DPR a stabilné prepočítanie rozmerov pri resize.",
+      "responsiveNoteEn": "Very good: fullscreen canvas, DPR, and stable dimension recalculation on resize."
+    },
+    {
+      "id": "glm_53_iq4_xs",
+      "name": "GLM 53 IQ4 XS",
+      "type": "Lokálny",
+      "file": "models/glm_53_iq4_xs.html",
+      "rank": 3,
+      "scores": {
+        "visual": 9,
+        "code": 8,
+        "animation": 9,
+        "creativity": 9,
+        "ux": 8,
+        "performance": 8,
+        "responsiveness": 9
+      },
+      "status": "OK",
+      "tags": [
+        "vizuálny favorit",
+        "lokálny",
+        "elegantný"
+      ],
+      "summary": "Vizuálne jeden z najpríjemnejších výsledkov. Menej preplnený ako IQ2, ale práve preto pôsobí čistejšie a elegantnejšie. Dobré pulzovanie, svetlo, planktón a interakcia.",
+      "codeNote": "Používa DPR, dt, triedu Jelly, bubliny, planktón a klik na pridanie medúzy. Rozumne vrstvená, nie príliš komplikovaná implementácia.",
+      "uxNote": "Jemná interakcia s kurzorom a kliknutím. UI je minimálne, scéna zostáva v centre pozornosti.",
+      "responsiveNote": "Veľmi dobrá: fullscreen canvas s DPR a resize eventom, vhodný aj do väčších preview okien.",
+      "responsiveNoteEn": "Very good: fullscreen DPR canvas with resize handling, suitable for larger preview windows."
+    },
+    {
+      "id": "glm_53_iq2_xxs",
+      "name": "GLM 53 IQ2 XXS",
+      "type": "Lokálny",
+      "file": "models/glm_53_iq2_xxs.html",
+      "rank": 4,
+      "scores": {
+        "visual": 8,
+        "code": 9,
+        "animation": 9,
+        "creativity": 10,
+        "ux": 9,
+        "performance": 8,
+        "responsiveness": 9
+      },
+      "status": "OK",
+      "tags": [
+        "najbohatšia lokálna scéna",
+        "interaktívny"
+      ],
+      "summary": "Najbohatší pôvodný lokálny výstup. Má vzdialené medúzy, ryby, kelp, morské dno, iskry, bubliny a interakciu. Vizuálne je však hustejší a menej čistý než IQ4.",
+      "codeNote": "Technicky prekvapivo vyspelé: dt, DPR, vrstvenie, limity, interakcia a separované systémy. V pomere ku kvantizácii veľmi silný výkon.",
+      "uxNote": "Kliknutie vytvára nové medúzy a efekt. Silné demo, ale oproti Qwen38 nemá tak premyslený informačný rámec.",
+      "responsiveNote": "Veľmi dobrá: komplexná scéna škáluje podľa okna a používa DPR, hoci hustota prvkov môže byť na malom náhľade vyššia.",
+      "responsiveNoteEn": "Very good: the complex scene scales with the window and uses DPR, though dense details can feel crowded in small previews."
+    },
+    {
+      "id": "chatgpt_5_6_sol_medium",
+      "name": "ChatGPT 5.6 Sol medium",
+      "type": "Cloud",
+      "file": "models/chatgpt_5_6_sol_medium.html",
+      "rank": 5,
+      "scores": {
+        "visual": 8,
+        "code": 9,
+        "animation": 8,
+        "creativity": 8,
+        "ux": 7,
+        "performance": 8,
+        "responsiveness": 9
+      },
+      "status": "OK",
+      "tags": [
+        "čistý cloud",
+        "dobrý balans"
+      ],
+      "summary": "Veľmi dobrý cloudový variant. Menej maximalistický než high, ale stále má čitateľné vrstvy, pekné medúzy, seabed, bubliny a parallax.",
+      "codeNote": "Dobré ukladanie vlastností do objektov, stabilné animovanie a slušná responzívnosť. Pôsobí profesionálnejšie než mnohé dlhšie lokálne výstupy.",
+      "uxNote": "Skôr ambientný zážitok než ovládateľná scéna.",
+      "responsiveNote": "Veľmi dobrá: responzívny fullscreen canvas s DPR a spoľahlivým prepočítaním rozmerov.",
+      "responsiveNoteEn": "Very good: responsive fullscreen canvas with DPR and reliable resize behavior."
+    },
+    {
+      "id": "chatgpt_5_5_high",
+      "name": "ChatGPT 5.5 High",
+      "type": "Cloud",
+      "file": "models/chatgpt_5_5_high.html",
+      "rank": 6,
+      "scores": {
+        "visual": 8,
+        "code": 7,
+        "animation": 7,
+        "creativity": 8,
+        "ux": 7,
+        "performance": 7,
+        "responsiveness": 8
+      },
+      "status": "OK",
+      "tags": [
+        "silný vizuál",
+        "menšia technická disciplína"
+      ],
+      "summary": "Vizuálne silný výsledok s pekným glow efektom a scénou. Slabina je náhodnosť v kreslení tentakúl, ktorá môže spôsobovať jemné blikanie.",
+      "codeNote": "Funguje, ale niektoré vlastnosti by mali byť stabilný stav objektu, nie nové hodnoty v každom draw cykle.",
+      "uxNote": "Decentný mouse glow a dobré fullscreen spracovanie.",
+      "responsiveNote": "Dobrá: fullscreen canvas reaguje na resize a používa DPR, drobné nepresnosti vznikajú miešaním fyzických a CSS rozmerov.",
+      "responsiveNoteEn": "Good: fullscreen canvas responds to resize and uses DPR, with minor roughness from mixed physical/CSS dimensions."
+    },
+    {
+      "id": "sonnet_5",
+      "name": "Claude Sonnet 5",
+      "type": "Cloud",
+      "file": "models/sonnet_5.html",
+      "rank": 7,
+      "scores": {
+        "visual": 7,
+        "code": 8,
+        "animation": 7,
+        "creativity": 7,
+        "ux": 6,
+        "performance": 8,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "čisté demo",
+        "cloud"
+      ],
+      "summary": "Korektný a čistý cloudový výstup. Má častice, bubliny, lúče, pekné telá medúz a stabilnú štruktúru.",
+      "codeNote": "Dobre čitateľný objektový kód. Menej ambiciózny, ale bez zásadných rizík.",
+      "uxNote": "Bez UI prvkov, sústreďuje sa na scénu.",
+      "responsiveNote": "Slušná: fullscreen resize funguje, ale bez DPR, takže na jemných displejoch pôsobí menej ostro.",
+      "responsiveNoteEn": "Solid: fullscreen resize works, but without DPR it looks less crisp on high-density displays."
+    },
+    {
+      "id": "qwen_36_30b_a3b_q8_xhigh",
+      "name": "Qwen 36 30B A3B Q8 xhigh",
+      "type": "Lokálny",
+      "file": "models/qwen_36_30b_a3b_q8_xhigh.html",
+      "rank": 8,
+      "scores": {
+        "visual": 7,
+        "code": 7,
+        "animation": 7,
+        "creativity": 7,
+        "ux": 6,
+        "performance": 7,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "stabilný",
+        "lokálny"
+      ],
+      "summary": "Stabilná farebná scéna s dobrým vrstvením. Nie je najoriginálnejšia, ale prompt plní spoľahlivo.",
+      "codeNote": "Solídne triedy a efekty, no niektoré vizuálne vlastnosti sú príliš náhodné.",
+      "uxNote": "Bez výrazného UI.",
+      "responsiveNote": "Slušná: canvas sa prispôsobí oknu, ale nerieši DPR a jemnejšie responzívne detaily.",
+      "responsiveNoteEn": "Solid: canvas adapts to the window, but it lacks DPR and finer responsive details."
+    },
+    {
+      "id": "gemini_3_8_flash",
+      "name": "Gemini 3.8 Flash",
+      "type": "Cloud",
+      "file": "models/gemini_3_8_flash.html",
+      "rank": 9,
+      "scores": {
+        "visual": 7,
+        "code": 7,
+        "animation": 8,
+        "creativity": 7,
+        "ux": 5,
+        "performance": 8,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "najlepší Gemini",
+        "dobrý pohyb"
+      ],
+      "summary": "Najlepší Gemini výstup. Má pekné pulzovanie, dobrý glow a prirodzenejšie tentakuly, ale menej vrstiev a žiadne UI.",
+      "codeNote": "Jednoduché, čisté a spustiteľné. Chýba DPR a bohatšia scéna.",
+      "uxNote": "Čistá animácia bez ovládania.",
+      "responsiveNote": "Slušná: resize podľa okna funguje, chýba DPR a adaptácia počtu prvkov.",
+      "responsiveNoteEn": "Solid: window resize works, but DPR and adaptive entity density are missing."
+    },
+    {
+      "id": "muse_glimmer_30b_q8_k_xl",
+      "name": "Muse Glimmer 30B Q8 K XL",
+      "type": "Lokálny",
+      "file": "models/muse_glimmer_30b_q8_k_xl.html",
+      "rank": 10,
+      "scores": {
+        "visual": 7,
+        "code": 6,
+        "animation": 7,
+        "creativity": 7,
+        "ux": 5,
+        "performance": 7,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "jednoduché",
+        "farebné"
+      ],
+      "summary": "Kratší kód, ale príjemná farebná scéna s planktónom a bublinami.",
+      "codeNote": "Jednoduché, bez veľkej architektúry. Funguje, ale nemá technickú hĺbku top výstupov.",
+      "uxNote": "Bez UI.",
+      "responsiveNote": "Slušná: jednoduchý fullscreen canvas reaguje na veľkosť okna, bez DPR a širšej adaptácie.",
+      "responsiveNoteEn": "Solid: simple fullscreen canvas follows the window size, without DPR or deeper adaptation."
+    },
+    {
+      "id": "gemini_3_5_flash_lite",
+      "name": "Gemini 3.5 Flash Lite",
+      "type": "Cloud",
+      "file": "models/gemini_3_5_flash_lite.html",
+      "rank": 11,
+      "scores": {
+        "visual": 6,
+        "code": 7,
+        "animation": 7,
+        "creativity": 6,
+        "ux": 5,
+        "performance": 8,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "prekvapivo slušné",
+        "lite"
+      ],
+      "summary": "Jednoduchý, farebný a funkčný výstup. Na Lite model slušné, ale stále bez hĺbky najlepších scén.",
+      "codeNote": "Čitateľné, stabilné, bez runtime chyby. Technicky konzervatívne.",
+      "uxNote": "Bez interakcie.",
+      "responsiveNote": "Slušná: canvas sa prispôsobuje oknu, technicky však zostáva jednoduchý a bez DPR.",
+      "responsiveNoteEn": "Solid: canvas follows the window size, but remains technically simple and lacks DPR."
+    },
+    {
+      "id": "opus_5",
+      "name": "Claude Opus 5",
+      "type": "Cloud",
+      "file": "models/opus_5.html",
+      "rank": 12,
+      "scores": {
+        "visual": 6,
+        "code": 7,
+        "animation": 7,
+        "creativity": 7,
+        "ux": 8,
+        "performance": 8,
+        "responsiveness": 6
+      },
+      "status": "OK",
+      "tags": [
+        "widget",
+        "tlačidlá"
+      ],
+      "summary": "Zaujímavý skôr ako vložiteľný widget než plnohodnotná fullscreen scéna. Má Pause, Add jellyfish a klikateľné pridanie medúzy.",
+      "codeNote": "Kompaktný a funkčný, s DPR. Menšia scéna limituje vizuálny dojem.",
+      "uxNote": "Dobré jednoduché ovládanie, ale kompozícia je menšia a menej pohlcujúca.",
+      "responsiveNote": "Čiastočná: šírka widgetu reaguje na kontajner, ale výška je pevná, takže nepôsobí ako plnohodnotná fullscreen scéna.",
+      "responsiveNoteEn": "Partial: widget width follows the container, but height is fixed, so it does not feel like a full-screen scene."
+    },
+    {
+      "id": "gemma4_31b_q4km",
+      "name": "Gemma 4 31B Q4KM",
+      "type": "Lokálny",
+      "file": "models/gemma4_31b_q4km.html",
+      "rank": 13,
+      "scores": {
+        "visual": 6,
+        "code": 6,
+        "animation": 6,
+        "creativity": 6,
+        "ux": 5,
+        "performance": 7,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "funkčné",
+        "základné"
+      ],
+      "summary": "Funkčné a príjemné, ale skôr základné. Má častice a farebné medúzy, nie však výraznú scénickú réžiu.",
+      "codeNote": "Jednoduché triedy a gradienty. Bez vážnych problémov.",
+      "uxNote": "Bez interakcie.",
+      "responsiveNote": "Slušná: fullscreen resize funguje, bez DPR a bez pokročilej adaptácie scény.",
+      "responsiveNoteEn": "Solid: fullscreen resize works, without DPR or advanced scene adaptation."
+    },
+    {
+      "id": "gemini_3_1_pro",
+      "name": "Gemini 3.1 Pro",
+      "type": "Cloud",
+      "file": "models/gemini_3_1_pro.html",
+      "rank": 14,
+      "scores": {
+        "visual": 5,
+        "code": 6,
+        "animation": 6,
+        "creativity": 5,
+        "ux": 5,
+        "performance": 7,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "konzervatívne",
+        "cloud"
+      ],
+      "summary": "Stabilný, ale konzervatívny výstup. Paradoxne slabší než Gemini Flash v tejto konkrétnej úlohe.",
+      "codeNote": "Funguje, ale niektoré dĺžky tentakúl sa generujú v draw cykle, čo môže spôsobiť vizuálny šum.",
+      "uxNote": "Bez UI a bez výraznej interakcie.",
+      "responsiveNote": "Slušná: reaguje na resize okna, ale bez DPR a bez hlbšej responzívnej logiky.",
+      "responsiveNoteEn": "Solid: responds to window resize, but lacks DPR and deeper responsive logic."
+    },
+    {
+      "id": "qwen35_9b_q8",
+      "name": "Qwen 3.5 9B Q8",
+      "type": "Lokálny",
+      "file": "models/qwen35_9b_q8.html",
+      "rank": 15,
+      "scores": {
+        "visual": 5,
+        "code": 5,
+        "animation": 5,
+        "creativity": 5,
+        "ux": 4,
+        "performance": 7,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "generické",
+        "jednoduché"
+      ],
+      "summary": "Splní prompt, ale pôsobí ako bežné canvas demo s elipsami a bublinami.",
+      "codeNote": "Jednoduché a čitateľné, bez väčšej ambície.",
+      "uxNote": "Bez UI.",
+      "responsiveNote": "Slušná: základný fullscreen resize, bez ostrosti DPR a bez optimalizácie hustoty prvkov.",
+      "responsiveNoteEn": "Solid: basic fullscreen resize, without DPR sharpness or adaptive entity density."
+    },
+    {
+      "id": "gpt_oss_20b_f16",
+      "name": "GPT OSS 20B F16",
+      "type": "Lokálny",
+      "file": "models/gpt_oss_20b_f16.html",
+      "rank": 16,
+      "scores": {
+        "visual": 4,
+        "code": 5,
+        "animation": 5,
+        "creativity": 4,
+        "ux": 4,
+        "performance": 8,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "čisté",
+        "veľmi jednoduché"
+      ],
+      "summary": "Technicky čisté a stručné, ale vizuálne veľmi základné.",
+      "codeNote": "Má triedu Jellyfish a jednoduchý loop, no takmer žiadnu scénickú komplexitu.",
+      "uxNote": "Bez UI.",
+      "responsiveNote": "Slušná: jednoduchý fullscreen canvas reaguje na okno, bez DPR.",
+      "responsiveNoteEn": "Solid: simple fullscreen canvas follows the window, without DPR."
+    },
+    {
+      "id": "haiku_4_5",
+      "name": "Claude Haiku 4.5",
+      "type": "Cloud",
+      "file": "models/haiku_4_5.html",
+      "rank": 17,
+      "scores": {
+        "visual": 4,
+        "code": 5,
+        "animation": 5,
+        "creativity": 5,
+        "ux": 4,
+        "performance": 7,
+        "responsiveness": 4
+      },
+      "status": "OK",
+      "tags": [
+        "sketch",
+        "cloud"
+      ],
+      "summary": "Skôr rýchly náčrt než hotová scéna. Sympatické, ale v porovnaní slabšie.",
+      "codeNote": "Funkčné, jednoduché, fixný canvas.",
+      "uxNote": "Bez UI.",
+      "responsiveNote": "Slabšia: výstup používa fixný 800x600 canvas, ktorý sa iba CSS škáluje. Na malých a veľkých oknách stráca kompozíciu aj ostrosť.",
+      "responsiveNoteEn": "Weak: uses a fixed 800x600 canvas that is only CSS-scaled. It loses composition and crispness in small and large windows."
+    },
+    {
+      "id": "qwen35_9b_bf16",
+      "name": "Qwen 3.5 9B BF16",
+      "type": "Lokálny",
+      "file": "models/qwen35_9b_bf16.html",
+      "rank": 18,
+      "scores": {
+        "visual": 4,
+        "code": 4,
+        "animation": 3,
+        "creativity": 5,
+        "ux": 4,
+        "performance": 6,
+        "responsiveness": 7
+      },
+      "status": "OK",
+      "tags": [
+        "ambiciózne, ale slabšie"
+      ],
+      "summary": "Ambicióznejšie než Q8, no pohyb a tvar tentakúl sú menej prirodzené.",
+      "codeNote": "Radiálne tentakuly a silné posuny môžu pôsobiť skôr ako sasanka než medúza.",
+      "uxNote": "Bez UI.",
+      "responsiveNote": "Slušná: základný fullscreen resize, ale bez DPR a bez citlivej adaptácie kompozície.",
+      "responsiveNoteEn": "Solid: basic fullscreen resize, without DPR or sensitive composition adaptation."
+    }
+  ],
+  "methodologySk": [
+    "Zhoda s promptom: či je výsledok jasne farebná animovaná deep-sea canvas scéna so svietiacimi medúzami.",
+    "Vizuálna kvalita: kompozícia, glow, hĺbka, farebná disciplína a či scéna pôsobí živo.",
+    "Animácia: prirodzený pohyb, pulzovanie, správanie tentakúl, stabilita časovania a interakcia.",
+    "Kvalita kódu: štruktúra, objektový stav, resize handling, device pixel ratio, časový model a runtime riziká.",
+    "Výkonová robustnosť: množstvo kreslenia, limity, reduced-motion/performance guardy a predvídateľné framy.",
+    "Responzivita: či sa canvas prispôsobuje rôznym veľkostiam okna, hustote pixelov, vloženým náhľadom a veľkému zobrazeniu bez straty kompozície alebo ostrosti.",
+    "UX/UI: ovládanie, čitateľnosť, interakčný dizajn a či pridané rozhranie pomáha scéne."
+  ]
+};
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTML previews | AI jellyfish benchmark</title>
+  <meta name="description" content="Live HTML previews of every AI-generated jellyfish canvas output, with secure user voting on the deployed site." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23020817'/%3E%3Cpath d='M8 16c0-6 4-10 8-10s8 4 8 10c0 3-3 4-8 4s-8-1-8-4Z' fill='%237de9ff' fill-opacity='.86'/%3E%3Cpath d='M11 20c0 4-2 5-2 8M15 20c0 5-2 5-1 8M19 20c0 5 2 5 1 8M23 20c0 4 2 5 2 8' stroke='%23f472d0' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header compact">
+    <div>
+      <div class="prefs-bar" aria-label="Display preferences">
+        <div class="segmented" role="group" aria-label="Language">
+          <button type="button" data-pref-lang="en">EN</button>
+          <button type="button" data-pref-lang="sk">SK</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-pref-theme="dark">Dark</button>
+          <button type="button" data-pref-theme="light">Light</button>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Benchmark navigation">
+        <a href="index.html"><span data-i18n="en">Review</span><span data-i18n="sk">Recenzia</span></a>
+        <a class="is-active" href="gallery.html"><span data-i18n="en">HTML previews</span><span data-i18n="sk">HTML náhľady</span></a>
+        <a href="compare.html"><span data-i18n="en">Head to head</span><span data-i18n="sk">Priame porovnanie</span></a>
+      </nav>
+      <p class="eyebrow"><span data-i18n="en">Live appendix</span><span data-i18n="sk">Živá príloha</span></p>
+      <h1><span data-i18n="en">HTML previews of every model output</span><span data-i18n="sk">HTML náhľady výstupov modelov</span></h1>
+      <p class="lead" data-i18n="en">
+        Each card runs the original HTML output in an isolated preview. Use the large preview when the small frame hides composition, motion, or controls.
+      </p>
+      <p class="lead" data-i18n="sk">
+        Každá karta spúšťa pôvodný HTML výstup v izolovanom náhľade. Veľký náhľad použi vtedy, keď malý rámček skrýva kompozíciu, pohyb alebo ovládanie.
+      </p>
+    </div>
+    <aside class="prompt-panel vote-panel" aria-live="polite">
+      <span><span data-i18n="en">User vote</span><span data-i18n="sk">Hlas používateľa</span></span>
+      <p id="voteStatus">Loading vote status...</p>
+      <p data-i18n="sk">Na publikovanej stránke je hlas naviazaný na prihláseného používateľa, takže jeden používateľ má iba jeden aktívny hlas.</p>
+      <p data-i18n="en">On the deployed site, each vote is tied to the signed-in user, so one user has one active vote.</p>
+    </aside>
+  </header>
+
+  <main>
+    <section class="section gallery-toolbar" aria-labelledby="gallery-title">
+      <div>
+        <p class="eyebrow"><span data-i18n="en">Gallery</span><span data-i18n="sk">Galéria</span></p>
+        <h2 id="gallery-title"><span data-i18n="en">Comparable models</span><span data-i18n="sk">Porovnateľné modely</span></h2>
+      </div>
+      <div class="filters" aria-label="Model filter">
+        <button class="filter is-active" data-gallery-filter="all"><span data-i18n="en">All</span><span data-i18n="sk">Všetky</span></button>
+        <button class="filter" data-gallery-filter="Lokálny"><span data-i18n="en">Local</span><span data-i18n="sk">Lokálne</span></button>
+        <button class="filter" data-gallery-filter="Cloud">Cloud</button>
+      </div>
+    </section>
+
+    <section class="gallery-grid" id="galleryGrid" aria-label="Model HTML previews"></section>
+
+  </main>
+
+  <script src="data/models-data.js"></script>
+  <script src="preferences.js"></script>
+  <script src="explore.js"></script>
+</body>
+</html>

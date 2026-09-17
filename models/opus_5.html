@@ -1,0 +1,147 @@
+<h2 class="sr-only">Animated deep sea scene: glowing jellyfish drifting upward through dark blue water with bubbles, light shafts and marine snow.</h2>
+<div style="padding: 0.5rem 0;">
+  <canvas id="seaC" style="width: 100%; display: block; border-radius: 12px; background: #02060f;"></canvas>
+  <div style="display: flex; gap: 8px; margin-top: 12px;">
+    <button id="seaToggle" style="flex: 1;">Pause</button>
+    <button id="seaAdd" style="flex: 1;">Add jellyfish</button>
+  </div>
+</div>
+<script>
+(function(){
+  var c = document.getElementById('seaC');
+  var g = c.getContext('2d');
+  var H = 440, W = 380, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var running = true, t = 0, jellies = [], snow = [], bubbles = [];
+
+  function resize(){
+    W = c.clientWidth || 380;
+    c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+    c.style.height = H + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function rnd(a, b){ return a + Math.random() * (b - a); }
+
+  function makeJelly(y){
+    var hues = [188, 205, 280, 315, 262];
+    return {
+      x: rnd(30, 350), y: y === undefined ? rnd(0, H) : y,
+      r: rnd(14, 30), hue: hues[(Math.random() * hues.length) | 0],
+      phase: rnd(0, 7), pulse: rnd(1.4, 2.4), sp: rnd(0.15, 0.45),
+      sway: rnd(0.3, 0.9), tent: 7
+    };
+  }
+  for (var i = 0; i < 7; i++) jellies.push(makeJelly());
+  for (var j = 0; j < 70; j++) snow.push({ x: rnd(0, 380), y: rnd(0, H), r: rnd(0.4, 1.6), sp: rnd(0.05, 0.3), a: rnd(0.15, 0.6) });
+  for (var b = 0; b < 18; b++) bubbles.push({ x: rnd(0, 380), y: rnd(0, H), r: rnd(1, 4), sp: rnd(0.3, 0.9), ph: rnd(0, 7) });
+
+  function background(){
+    var bg = g.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, '#0a2f4d'); bg.addColorStop(0.45, '#062038'); bg.addColorStop(1, '#01060f');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'lighter';
+    for (var i = 0; i < 4; i++){
+      var sx = (i + 0.5) * (W / 4) + Math.sin(t * 0.3 + i) * 22;
+      var sh = g.createLinearGradient(sx, 0, sx, H * 0.85);
+      sh.addColorStop(0, 'rgba(120,220,255,0.14)'); sh.addColorStop(1, 'rgba(120,220,255,0)');
+      g.fillStyle = sh;
+      g.beginPath(); g.moveTo(sx - 12, 0); g.lineTo(sx + 12, 0);
+      g.lineTo(sx + 55, H * 0.85); g.lineTo(sx - 45, H * 0.85); g.closePath(); g.fill();
+    }
+    g.globalCompositeOperation = 'source-over';
+  }
+
+  function jelly(j){
+    var s = 1 + 0.14 * Math.sin(t * j.pulse + j.phase);
+    var r = j.r * s;
+    g.save();
+    g.translate(j.x + Math.sin(t * 0.5 + j.phase) * j.sway * 8, j.y);
+    g.globalCompositeOperation = 'lighter';
+    var glow = g.createRadialGradient(0, 0, r * 0.2, 0, 0, r * 3.2);
+    glow.addColorStop(0, 'hsla(' + j.hue + ',100%,72%,0.42)');
+    glow.addColorStop(0.4, 'hsla(' + j.hue + ',100%,62%,0.14)');
+    glow.addColorStop(1, 'hsla(' + j.hue + ',100%,60%,0)');
+    g.fillStyle = glow;
+    g.beginPath(); g.arc(0, r * 0.4, r * 3.2, 0, Math.PI * 2); g.fill();
+
+    g.lineWidth = 1.4; g.lineCap = 'round';
+    for (var i = 0; i < j.tent; i++){
+      var off = (i / (j.tent - 1) - 0.5) * 1.5 * r;
+      var len = r * (2.6 + (i % 3) * 0.9);
+      g.strokeStyle = 'hsla(' + j.hue + ',100%,78%,0.5)';
+      g.beginPath(); g.moveTo(off, r * 0.1);
+      for (var k = 1; k <= 12; k++){
+        var p = k / 12;
+        g.lineTo(off + Math.sin(t * 2.2 + j.phase + p * 3.4 + i) * r * 0.4 * p, r * 0.1 + len * p);
+      }
+      g.stroke();
+    }
+    g.lineWidth = 3;
+    for (var m = 0; m < 4; m++){
+      var o2 = (m / 3 - 0.5) * r * 0.7;
+      g.strokeStyle = 'hsla(' + (j.hue + 20) + ',100%,80%,0.35)';
+      g.beginPath(); g.moveTo(o2, 0);
+      for (var q = 1; q <= 8; q++){
+        var p2 = q / 8;
+        g.lineTo(o2 + Math.sin(t * 1.8 + j.phase + p2 * 2.2 + m) * r * 0.3 * p2, r * 1.6 * p2);
+      }
+      g.stroke();
+    }
+
+    var bell = g.createLinearGradient(0, -r, 0, r * 0.3);
+    bell.addColorStop(0, 'hsla(' + j.hue + ',100%,88%,0.95)');
+    bell.addColorStop(0.55, 'hsla(' + j.hue + ',95%,62%,0.7)');
+    bell.addColorStop(1, 'hsla(' + j.hue + ',95%,50%,0.25)');
+    g.fillStyle = bell;
+    g.beginPath();
+    g.ellipse(0, 0, r, r * 0.92, 0, Math.PI, Math.PI * 2);
+    for (var w = 0; w <= 14; w++){
+      var pw = w / 14;
+      g.lineTo(r - 2 * r * pw, Math.sin(pw * Math.PI * 3 + t * 3 + j.phase) * r * 0.09);
+    }
+    g.closePath(); g.fill();
+
+    g.fillStyle = 'hsla(' + (j.hue + 15) + ',100%,92%,0.5)';
+    g.beginPath(); g.ellipse(-r * 0.25, -r * 0.3, r * 0.3, r * 0.22, -0.4, 0, Math.PI * 2); g.fill();
+    g.restore();
+
+    j.y -= j.sp * (1 + 0.8 * Math.max(0, Math.sin(t * j.pulse + j.phase)));
+    if (j.y < -r * 5){ j.y = H + r * 4; j.x = rnd(20, W - 20); }
+  }
+
+  function frame(){
+    if (running) t += 0.016;
+    background();
+    g.globalCompositeOperation = 'lighter';
+    for (var s = 0; s < snow.length; s++){
+      var p = snow[s];
+      g.fillStyle = 'rgba(200,235,255,' + p.a + ')';
+      g.beginPath(); g.arc(p.x, p.y, p.r, 0, Math.PI * 2); g.fill();
+      if (running){ p.y += p.sp; if (p.y > H) { p.y = -3; p.x = rnd(0, W); } }
+    }
+    g.globalCompositeOperation = 'source-over';
+    for (var n = 0; n < jellies.length; n++) jelly(jellies[n]);
+    for (var q = 0; q < bubbles.length; q++){
+      var bu = bubbles[q];
+      g.strokeStyle = 'rgba(180,230,255,0.4)'; g.lineWidth = 1;
+      g.beginPath(); g.arc(bu.x + Math.sin(t * 1.5 + bu.ph) * 6, bu.y, bu.r, 0, Math.PI * 2); g.stroke();
+      if (running){ bu.y -= bu.sp; if (bu.y < -6){ bu.y = H + 6; bu.x = rnd(0, W); } }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  document.getElementById('seaToggle').addEventListener('click', function(){
+    running = !running; this.textContent = running ? 'Pause' : 'Play';
+  });
+  document.getElementById('seaAdd').addEventListener('click', function(){
+    if (jellies.length < 18) jellies.push(makeJelly(H + 40));
+  });
+  c.addEventListener('click', function(e){
+    var rect = c.getBoundingClientRect();
+    var nj = makeJelly(e.clientY - rect.top); nj.x = e.clientX - rect.left;
+    if (jellies.length < 18) jellies.push(nj);
+  });
+  window.addEventListener('resize', resize);
+  resize(); frame();
+})();
+</script>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Deep Sea</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000510;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="seaCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('seaCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height, jellyfishArray, particlesArray;
+
+    // Configuration
+    const JELLYFISH_COUNT = 8;
+    const PARTICLE_COUNT = 100;
+    const COLORS = ['#00f2ff', '#7000ff', '#ff00d4', '#00ffaa', '#ffee00'];
+
+    function init() {
+        resize();
+        jellyfishArray = [];
+        particlesArray = [];
+
+        // Create glowing particles (marine snow)
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particlesArray.push(new Particle());
+        }
+
+        // Create Jellyfish
+        for (let i = 0; i < JELLYFISH_COUNT; i++) {
+            jellyfishArray.push(new Jellyfish());
+        }
+    }
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', () => {
+        resize();
+        init(); 
+    });
+
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.size = Math.random() * 2;
+            this.speedY = Math.random() * 0.5 + 0.2;
+            this.opacity = Math.random() * 0.5 + 0.2;
+        }
+
+        update() {
+            this.y += this.speedY;
+            if (this.y > height) {
+                this.y = -10;
+                this.x = Math.random() * width;
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    class Jellyfish {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = Math.random() * width;
+            this.y = height + Math.random() * 200; // Start below screen
+            this.size = Math.random() * 20 + 30;
+            this.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            this.speedY = Math.random() * 0.5 + 0.5;
+            this.angle = 0; // Used for pulsing animation
+            this.pulseSpeed = Math.random() * 0.03 + 0.02;
+            this.tentacleCount = 5 + Math.floor(Math.random() * 5);
+        }
+
+        update() {
+            this.y -= this.speedY;
+            this.angle += this.pulseSpeed;
+
+            // Reset when they float off top
+            if (this.y < -100) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            const pulse = Math.sin(this.angle) * 5; // Oscillates between -5 and 5
+            const currentSize = this.size + pulse;
+
+            ctx.save();
+            ctx.translate(this.x, this.y);
+
+            // Glow effect
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = this.color;
+            ctx.strokeStyle = this.color;
+            ctx.fillStyle = this.color;
+            ctx.lineWidth = 2;
+
+            // Draw Tentacles (wavy lines)
+            ctx.beginPath();
+            for (let i = 0; i < this.tentacleCount; i++) {
+                const tx = (i - this.tentacleCount / 2) * (currentSize / 3);
+                ctx.moveTo(tx, 0);
+                
+                // Create a curve for each tentacle based on the pulse
+                const wave = Math.sin(this.angle + i) * 10;
+                ctx.bezierCurveTo(
+                    tx + wave, currentSize / 2, 
+                    tx - wave, currentSize, 
+                    tx + wave/2, currentSize * 1.5
+                );
+            }
+            ctx.stroke();
+
+            // Draw the Bell (the head)
+            ctx.beginPath();
+            // Create a semi-circle / dome shape
+            ctx.arc(0, 0, currentSize, Math.PI, 0);
+            ctx.closePath();
+            
+            // Fill with gradient for depth
+            const grad = ctx.createRadialGradient(0, -currentSize/2, 0, 0, 0, currentSize);
+            grad.addColorStop(0, this.color);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    function animate() {
+        // Create a deep sea gradient background
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+        bgGrad.addColorStop(0, '#000b1a');
+        bgGrad.addColorStop(1, '#001a33');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Update and draw particles
+        particlesArray.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // Update and draw jellyfish
+        jellyfishArray.forEach(j => {
+            j.update();
+            j.draw();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+</script>
+</body>
+</html>

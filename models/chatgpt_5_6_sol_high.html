@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glowing Deep Sea Jellyfish</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #020510;
+  }
+
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .title {
+    position: fixed;
+    left: 32px;
+    bottom: 28px;
+    z-index: 5;
+    pointer-events: none;
+    color: rgba(220, 245, 255, 0.7);
+    font-family: Inter, Arial, sans-serif;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-size: 11px;
+    text-shadow: 0 0 16px rgba(70, 210, 255, 0.7);
+    mix-blend-mode: screen;
+  }
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+<div class="title">The Luminous Deep</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let width = 0;
+let height = 0;
+let dpr = 1;
+let time = 0;
+
+const mouse = {
+  x: 0,
+  y: 0,
+  targetX: 0,
+  targetY: 0
+};
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  width = window.innerWidth;
+  height = window.innerHeight;
+
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+
+  canvas.style.width = width + "px";
+  canvas.style.height = height + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  createScene();
+}
+
+window.addEventListener("resize", resize);
+
+window.addEventListener("pointermove", e => {
+  mouse.targetX = e.clientX / width - 0.5;
+  mouse.targetY = e.clientY / height - 0.5;
+});
+
+window.addEventListener("pointerleave", () => {
+  mouse.targetX = 0;
+  mouse.targetY = 0;
+});
+
+
+// ------------------------------------------------------
+// Helpers
+// ------------------------------------------------------
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+
+// ------------------------------------------------------
+// Background particles
+// ------------------------------------------------------
+
+class Particle {
+  constructor() {
+    this.reset(true);
+  }
+
+  reset(initial = false) {
+    this.x = rand(0, width);
+    this.y = initial ? rand(0, height) : height + rand(10, 100);
+
+    this.size = rand(0.4, 2.2);
+    this.speed = rand(0.08, 0.35);
+    this.alpha = rand(0.08, 0.55);
+    this.drift = rand(-0.15, 0.15);
+
+    const colors = [
+      "110,220,255",
+      "90,255,220",
+      "150,120,255",
+      "255,90,220"
+    ];
+
+    this.color = colors[
+      Math.floor(Math.random() * colors.length)
+    ];
+  }
+
+  update() {
+    this.y -= this.speed;
+    this.x += Math.sin(time * 0.0005 + this.y * 0.01) * this.drift;
+
+    if (this.y < -20) this.reset();
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(${this.color},${this.alpha})`;
+    ctx.shadowBlur = this.size * 5;
+    ctx.shadowColor = `rgba(${this.color},0.7)`;
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+
+// ------------------------------------------------------
+// Bubbles
+// ------------------------------------------------------
+
+class Bubble {
+  constructor() {
+    this.reset(true);
+  }
+
+  reset(initial = false) {
+    this.x = rand(0, width);
+    this.y = initial ? rand(0, height) : height + rand(20, 150);
+
+    this.radius = rand(1.5, 6);
+    this.speed = rand(0.15, 0.6);
+    this.wobble = rand(0.001, 0.004);
+    this.phase = rand(0, Math.PI * 2);
+  }
+
+  update() {
+    this.y -= this.speed;
+    this.x += Math.sin(time * this.wobble + this.phase) * 0.3;
+
+    if (this.y < -20) this.reset();
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(180,240,255,0.18)";
+    ctx.lineWidth = 1;
+
+    ctx.arc(
+      this.x,
+      this.y,
+      this.radius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.arc(
+      this.x - this.radius * 0.25,
+      this.y - this.radius * 0.25,
+      this.radius * 0.18,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+}
+
+
+// ------------------------------------------------------
+// Jellyfish
+// ------------------------------------------------------
+
+class Jellyfish {
+  constructor(options = {}) {
+
+    this.x = options.x ?? rand(0, width);
+    this.y = options.y ?? rand(0, height);
+
+    this.baseX = this.x;
+    this.baseY = this.y;
+
+    this.size = options.size ?? rand(40, 100);
+
+    this.speed = options.speed ?? rand(0.06, 0.18);
+    this.phase = rand(0, Math.PI * 2);
+
+    this.depth = options.depth ?? rand(0.5, 1.2);
+
+    this.hue = options.hue ?? rand(170, 320);
+
+    this.tentacles = Math.floor(rand(6, 12));
+
+    this.tentacleLengths = Array.from(
+      { length: this.tentacles },
+      () => rand(0.8, 1.6)
+    );
+  }
+
+  update() {
+    const t = time * 0.001;
+
+    this.y -= this.speed;
+
+    this.x =
+      this.baseX +
+      Math.sin(t * 0.45 + this.phase) *
+      this.size *
+      0.45;
+
+    if (this.y < -this.size * 3) {
+      this.y = height + this.size * 2;
+      this.baseX = rand(0, width);
+    }
+  }
+
+  draw() {
+
+    const t = time * 0.001;
+
+    const pulse =
+      1 +
+      Math.sin(t * 2 + this.phase) *
+      0.06;
+
+    const s = this.size * pulse;
+
+    ctx.save();
+
+    // parallax
+    ctx.translate(
+      this.x + mouse.x * 25 * this.depth,
+      this.y + mouse.y * 15 * this.depth
+    );
+
+    const glowColor =
+      `hsla(${this.hue},100%,70%,0.7)`;
+
+    ctx.globalCompositeOperation = "lighter";
+
+    // ----------------------------------
+    // Outer aura
+    // ----------------------------------
+
+    const aura = ctx.createRadialGradient(
+      0,
+      0,
+      0,
+      0,
+      0,
+      s * 1.6
+    );
+
+    aura.addColorStop(
+      0,
+      `hsla(${this.hue},100%,65%,0.22)`
+    );
+
+    aura.addColorStop(
+      0.5,
+      `hsla(${this.hue},100%,60%,0.06)`
+    );
+
+    aura.addColorStop(
+      1,
+      `hsla(${this.hue},100%,50%,0)`
+    );
+
+    ctx.fillStyle = aura;
+
+    ctx.beginPath();
+    ctx.arc(0, 0, s * 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+
+    // ----------------------------------
+    // Tentacles
+    // ----------------------------------
+
+    ctx.lineCap = "round";
+
+    for (let i = 0; i < this.tentacles; i++) {
+
+      const spread =
+        (i / (this.tentacles - 1) - 0.5) *
+        s *
+        1.15;
+
+      const length =
+        s *
+        this.tentacleLengths[i];
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        spread * 0.8,
+        s * 0.3
+      );
+
+      const segments = 18;
+
+      for (let j = 1; j <= segments; j++) {
+
+        const p = j / segments;
+
+        const wave =
+          Math.sin(
+            t * 2 +
+            i +
+            p * 8
+          ) *
+          s *
+          0.06 *
+          p;
+
+        const x =
+          spread * (1 - p * 0.25) +
+          wave;
+
+        const y =
+          s * 0.3 +
+          length * p;
+
+        ctx.lineTo(x, y);
+      }
+
+      const gradient =
+        ctx.createLinearGradient(
+          0,
+          s * 0.2,
+          0,
+          s * 1.8
+        );
+
+      gradient.addColorStop(
+        0,
+        `hsla(${this.hue},100%,80%,0.55)`
+      );
+
+      gradient.addColorStop(
+        1,
+        `hsla(${this.hue + 40},100%,70%,0)`
+      );
+
+      ctx.strokeStyle = gradient;
+
+      ctx.lineWidth =
+        Math.max(1, s * 0.018);
+
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = glowColor;
+
+      ctx.stroke();
+    }
+
+
+    // ----------------------------------
+    // Bell
+    // ----------------------------------
+
+    ctx.beginPath();
+
+    ctx.moveTo(-s * 0.65, s * 0.15);
+
+    ctx.bezierCurveTo(
+      -s * 0.62,
+      -s * 0.48,
+      -s * 0.33,
+      -s * 0.65,
+      0,
+      -s * 0.68
+    );
+
+    ctx.bezierCurveTo(
+      s * 0.33,
+      -s * 0.65,
+      s * 0.62,
+      -s * 0.48,
+      s * 0.65,
+      s * 0.15
+    );
+
+    ctx.bezierCurveTo(
+      s * 0.35,
+      s * 0.32,
+      -s * 0.35,
+      s * 0.32,
+      -s * 0.65,
+      s * 0.15
+    );
+
+    ctx.closePath();
+
+    const bellGradient =
+      ctx.createRadialGradient(
+        -s * 0.15,
+        -s * 0.35,
+        s * 0.05,
+        0,
+        0,
+        s
+      );
+
+    bellGradient.addColorStop(
+      0,
+      `hsla(${this.hue + 25},100%,95%,0.85)`
+    );
+
+    bellGradient.addColorStop(
+      0.25,
+      `hsla(${this.hue},100%,75%,0.65)`
+    );
+
+    bellGradient.addColorStop(
+      0.75,
+      `hsla(${this.hue + 30},100%,55%,0.25)`
+    );
+
+    bellGradient.addColorStop(
+      1,
+      `hsla(${this.hue},100%,50%,0.04)`
+    );
+
+    ctx.fillStyle = bellGradient;
+
+    ctx.shadowBlur = s * 0.45;
+    ctx.shadowColor = glowColor;
+
+    ctx.fill();
+
+
+    // ----------------------------------
+    // Bell rim
+    // ----------------------------------
+
+    ctx.beginPath();
+
+    ctx.moveTo(-s * 0.6, s * 0.12);
+
+    ctx.quadraticCurveTo(
+      -s * 0.45,
+      s * 0.28,
+      -s * 0.25,
+      s * 0.16
+    );
+
+    ctx.quadraticCurveTo(
+      0,
+      s * 0.35,
+      s * 0.25,
+      s * 0.16
+    );
+
+    ctx.quadraticCurveTo(
+      s * 0.45,
+      s * 0.28,
+      s * 0.6,
+      s * 0.12
+    );
+
+    ctx.strokeStyle =
+      `hsla(${this.hue + 20},100%,85%,0.55)`;
+
+    ctx.lineWidth = s * 0.025;
+
+    ctx.stroke();
+
+
+    // ----------------------------------
+    // Inner organs
+    // ----------------------------------
+
+    for (let i = -1; i <= 1; i++) {
+
+      ctx.beginPath();
+
+      ctx.moveTo(i * s * 0.18, -s * 0.05);
+
+      ctx.bezierCurveTo(
+        i * s * 0.14,
+        s * 0.15,
+        i * s * 0.15 +
+        Math.sin(t * 2 + i) * s * 0.05,
+        s * 0.25,
+        i * s * 0.12,
+        s * 0.55
+      );
+
+      ctx.strokeStyle =
+        `hsla(${this.hue + 45},100%,90%,0.45)`;
+
+      ctx.lineWidth =
+        Math.max(1.2, s * 0.02);
+
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+
+// ------------------------------------------------------
+// Scene objects
+// ------------------------------------------------------
+
+let particles = [];
+let bubbles = [];
+let jellyfish = [];
+
+function createScene() {
+
+  particles = [];
+  bubbles = [];
+  jellyfish = [];
+
+  const particleCount =
+    Math.min(
+      260,
+      Math.floor(width * height / 5500)
+    );
+
+  const bubbleCount =
+    Math.min(
+      60,
+      Math.floor(width * height / 25000)
+    );
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  for (let i = 0; i < bubbleCount; i++) {
+    bubbles.push(new Bubble());
+  }
+
+  // Large hero jellyfish
+
+  jellyfish.push(
+    new Jellyfish({
+      x: width * 0.55,
+      y: height * 0.42,
+      size: Math.min(width, height) * 0.13,
+      hue: 190,
+      speed: 0.04,
+      depth: 1.25
+    })
+  );
+
+  jellyfish.push(
+    new Jellyfish({
+      x: width * 0.24,
+      y: height * 0.66,
+      size: Math.min(width, height) * 0.085,
+      hue: 285,
+      speed: 0.07,
+      depth: 0.9
+    })
+  );
+
+  jellyfish.push(
+    new Jellyfish({
+      x: width * 0.82,
+      y: height * 0.72,
+      size: Math.min(width, height) * 0.065,
+      hue: 330,
+      speed: 0.08,
+      depth: 0.8
+    })
+  );
+
+  // Smaller background jellyfish
+
+  const extraCount =
+    width < 700 ? 4 : 7;
+
+  for (let i = 0; i < extraCount; i++) {
+
+    jellyfish.push(
+      new Jellyfish({
+        x: rand(0, width),
+        y: rand(0, height),
+        size: rand(25, 55),
+        hue: rand(170, 330),
+        speed: rand(0.05, 0.12),
+        depth: rand(0.35, 0.7)
+      })
+    );
+  }
+}
+
+
+// ------------------------------------------------------
+// Background
+// ------------------------------------------------------
+
+function drawBackground() {
+
+  const gradient =
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      height
+    );
+
+  gradient.addColorStop(0, "#061d35");
+  gradient.addColorStop(0.35, "#04132b");
+  gradient.addColorStop(0.7, "#030a1d");
+  gradient.addColorStop(1, "#01030b");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+
+  // giant color clouds
+
+  const clouds = [
+    {
+      x: width * 0.22,
+      y: height * 0.38,
+      radius: width * 0.45,
+      color: "rgba(0,200,255,0.06)"
+    },
+    {
+      x: width * 0.78,
+      y: height * 0.55,
+      radius: width * 0.35,
+      color: "rgba(150,40,255,0.06)"
+    },
+    {
+      x: width * 0.5,
+      y: height * 0.78,
+      radius: width * 0.45,
+      color: "rgba(255,20,170,0.025)"
+    }
+  ];
+
+  clouds.forEach(c => {
+
+    const g =
+      ctx.createRadialGradient(
+        c.x,
+        c.y,
+        0,
+        c.x,
+        c.y,
+        c.radius
+      );
+
+    g.addColorStop(0, c.color);
+    g.addColorStop(1, "rgba(0,0,0,0)");
+
+    ctx.fillStyle = g;
+    ctx.fillRect(
+      c.x - c.radius,
+      c.y - c.radius,
+      c.radius * 2,
+      c.radius * 2
+    );
+  });
+
+
+  drawLightRays();
+}
+
+
+// ------------------------------------------------------
+// Light rays
+// ------------------------------------------------------
+
+function drawLightRays() {
+
+  ctx.save();
+
+  ctx.globalCompositeOperation = "screen";
+
+  for (let i = 0; i < 7; i++) {
+
+    const topX =
+      width *
+      (0.05 + i * 0.15);
+
+    const sway =
+      Math.sin(
+        time * 0.00015 + i
+      ) *
+      40;
+
+    const gradient =
+      ctx.createLinearGradient(
+        0,
+        0,
+        0,
+        height * 0.8
+      );
+
+    gradient.addColorStop(
+      0,
+      "rgba(80,220,255,0.065)"
+    );
+
+    gradient.addColorStop(
+      1,
+      "rgba(20,100,255,0)"
+    );
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      topX - 10,
+      -20
+    );
+
+    ctx.lineTo(
+      topX + 55,
+      -20
+    );
+
+    ctx.lineTo(
+      topX +
+      220 +
+      sway,
+      height * 0.82
+    );
+
+    ctx.lineTo(
+      topX +
+      70 +
+      sway,
+      height * 0.82
+    );
+
+    ctx.closePath();
+
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+
+// ------------------------------------------------------
+// Seafloor silhouette
+// ------------------------------------------------------
+
+function drawSeaFloor() {
+
+  ctx.save();
+
+  ctx.translate(
+    mouse.x * -12,
+    mouse.y * -4
+  );
+
+  const y =
+    height * 0.91;
+
+  ctx.beginPath();
+
+  ctx.moveTo(0, height);
+
+  ctx.lineTo(0, y);
+
+  for (
+    let x = 0;
+    x <= width + 100;
+    x += 100
+  ) {
+
+    const yy =
+      y +
+      Math.sin(x * 0.013) * 12 +
+      Math.sin(x * 0.027) * 5;
+
+    ctx.lineTo(x, yy);
+  }
+
+  ctx.lineTo(width, height);
+  ctx.closePath();
+
+  const floorGradient =
+    ctx.createLinearGradient(
+      0,
+      y,
+      0,
+      height
+    );
+
+  floorGradient.addColorStop(
+    0,
+    "rgba(2,13,22,0.6)"
+  );
+
+  floorGradient.addColorStop(
+    1,
+    "rgba(0,1,5,1)"
+  );
+
+  ctx.fillStyle =
+    floorGradient;
+
+  ctx.fill();
+
+
+  // sea grass
+
+  ctx.strokeStyle =
+    "rgba(20,110,110,0.25)";
+
+  ctx.lineWidth = 2;
+
+  for (
+    let x = 15;
+    x < width;
+    x += 30
+  ) {
+
+    const h =
+      rand(18, 65);
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      height
+    );
+
+    ctx.quadraticCurveTo(
+      x +
+      Math.sin(
+        time * 0.001 + x
+      ) *
+      12,
+      height - h * 0.5,
+      x +
+      Math.sin(
+        time * 0.0013 + x
+      ) *
+      8,
+      height - h
+    );
+
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+
+// ------------------------------------------------------
+// Vignette
+// ------------------------------------------------------
+
+function drawVignette() {
+
+  const vignette =
+    ctx.createRadialGradient(
+      width / 2,
+      height / 2,
+      Math.min(width, height) * 0.18,
+
+      width / 2,
+      height / 2,
+      Math.max(width, height) * 0.78
+    );
+
+  vignette.addColorStop(
+    0,
+    "rgba(0,0,0,0)"
+  );
+
+  vignette.addColorStop(
+    0.65,
+    "rgba(0,0,10,0.12)"
+  );
+
+  vignette.addColorStop(
+    1,
+    "rgba(0,0,8,0.72)"
+  );
+
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, width, height);
+}
+
+
+// ------------------------------------------------------
+// Animation
+// ------------------------------------------------------
+
+function animate(timestamp) {
+
+  time = timestamp;
+
+  mouse.x = lerp(
+    mouse.x,
+    mouse.targetX,
+    0.03
+  );
+
+  mouse.y = lerp(
+    mouse.y,
+    mouse.targetY,
+    0.03
+  );
+
+  ctx.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  drawBackground();
+
+  particles.forEach(p => {
+    p.update();
+    p.draw();
+  });
+
+  // render farther jellyfish first
+
+  jellyfish
+    .slice()
+    .sort(
+      (a, b) =>
+      a.depth - b.depth
+    )
+    .forEach(j => {
+      j.update();
+      j.draw();
+    });
+
+  bubbles.forEach(b => {
+    b.update();
+    b.draw();
+  });
+
+  drawSeaFloor();
+
+  drawVignette();
+
+  requestAnimationFrame(animate);
+}
+
+
+// ------------------------------------------------------
+
+resize();
+requestAnimationFrame(animate);
+
+</script>
+</body>
+</html>

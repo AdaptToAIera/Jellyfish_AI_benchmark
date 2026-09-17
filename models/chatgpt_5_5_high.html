@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glowing Jellyfish Deep Sea</title>
+<style>
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #020617;
+    font-family: system-ui, sans-serif;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  .title {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    color: rgba(220, 245, 255, 0.9);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    pointer-events: none;
+    text-shadow: 0 0 18px rgba(0, 220, 255, 0.8);
+  }
+</style>
+</head>
+<body>
+<div class="title">Deep Sea Bloom</div>
+<canvas id="sea"></canvas>
+
+<script>
+const canvas = document.getElementById("sea");
+const ctx = canvas.getContext("2d");
+
+let w, h, dpr;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  w = canvas.width = window.innerWidth * dpr;
+  h = canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  w = window.innerWidth;
+  h = window.innerHeight;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+const mouse = {
+  x: w / 2,
+  y: h / 2
+};
+
+window.addEventListener("mousemove", e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function rgba(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const colors = [
+  "#38bdf8",
+  "#22d3ee",
+  "#a78bfa",
+  "#f472b6",
+  "#34d399",
+  "#fb7185"
+];
+
+class Particle {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.x = rand(0, w);
+    this.y = rand(0, h);
+    this.r = rand(0.5, 2.2);
+    this.vx = rand(-0.15, 0.15);
+    this.vy = rand(-0.25, -0.04);
+    this.alpha = rand(0.15, 0.75);
+    this.color = colors[Math.floor(rand(0, colors.length))];
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (this.y < -10 || this.x < -20 || this.x > w + 20) {
+      this.reset();
+      this.y = h + 10;
+    }
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.fillStyle = rgba(this.color, this.alpha);
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 8;
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+class Jellyfish {
+  constructor(i) {
+    this.baseX = rand(80, w - 80);
+    this.y = rand(80, h + 400);
+    this.size = rand(38, 95);
+    this.speed = rand(0.25, 0.8);
+    this.phase = rand(0, Math.PI * 2);
+    this.color = colors[i % colors.length];
+    this.tentacles = Math.floor(rand(9, 18));
+    this.depth = rand(0.4, 1.15);
+  }
+
+  update(t) {
+    this.phase += 0.018 * this.speed;
+    this.y -= this.speed * this.depth;
+    this.x = this.baseX + Math.sin(t * 0.0006 * this.depth + this.phase) * 55;
+
+    this.baseX += Math.sin(t * 0.0002 + this.phase) * 0.15;
+
+    if (this.y < -this.size * 4) {
+      this.y = h + this.size * 3;
+      this.baseX = rand(80, w - 80);
+      this.size = rand(38, 95);
+      this.color = colors[Math.floor(rand(0, colors.length))];
+    }
+  }
+
+  draw(t) {
+    const pulse = 1 + Math.sin(this.phase * 2) * 0.08;
+    const sx = this.size * pulse;
+    const sy = this.size * 0.62 * pulse;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+
+    const glow = ctx.createRadialGradient(0, 0, 4, 0, 0, sx * 1.7);
+    glow.addColorStop(0, rgba(this.color, 0.45));
+    glow.addColorStop(0.45, rgba(this.color, 0.18));
+    glow.addColorStop(1, rgba(this.color, 0));
+
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, sx * 1.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 28;
+
+    const bodyGradient = ctx.createRadialGradient(
+      -sx * 0.2, -sy * 0.35, 4,
+      0, 0, sx
+    );
+    bodyGradient.addColorStop(0, "rgba(255,255,255,0.9)");
+    bodyGradient.addColorStop(0.22, rgba(this.color, 0.78));
+    bodyGradient.addColorStop(0.75, rgba(this.color, 0.36));
+    bodyGradient.addColorStop(1, rgba(this.color, 0.08));
+
+    ctx.fillStyle = bodyGradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, sx, sy, 0, Math.PI, 0);
+    ctx.quadraticCurveTo(sx * 0.75, sy * 0.85, 0, sy * 0.85);
+    ctx.quadraticCurveTo(-sx * 0.75, sy * 0.85, -sx, 0);
+    ctx.fill();
+
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.lineWidth = 1.2;
+    for (let i = -4; i <= 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * sx * 0.17, -sy * 0.45);
+      ctx.quadraticCurveTo(i * sx * 0.08, sy * 0.1, i * sx * 0.14, sy * 0.7);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < this.tentacles; i++) {
+      const spread = (i / (this.tentacles - 1) - 0.5) * sx * 1.45;
+      const length = rand(0.8, 1.35) * this.size * 2.4;
+      const wobble = Math.sin(t * 0.002 + this.phase + i) * 12;
+
+      const gradient = ctx.createLinearGradient(spread, sy * 0.58, spread, sy + length);
+      gradient.addColorStop(0, rgba(this.color, 0.72));
+      gradient.addColorStop(1, rgba(this.color, 0));
+
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = rand(1, 2.4);
+      ctx.shadowColor = this.color;
+      ctx.shadowBlur = 14;
+
+      ctx.beginPath();
+      ctx.moveTo(spread, sy * 0.58);
+      ctx.bezierCurveTo(
+        spread + wobble,
+        sy + length * 0.25,
+        spread - wobble * 1.4,
+        sy + length * 0.55,
+        spread + Math.sin(t * 0.003 + i) * 18,
+        sy + length
+      );
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+const particles = Array.from({ length: 170 }, () => new Particle());
+const jellyfish = Array.from({ length: 12 }, (_, i) => new Jellyfish(i));
+
+function drawBackground(t) {
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, "#031733");
+  bg.addColorStop(0.42, "#06143a");
+  bg.addColorStop(0.72, "#090b24");
+  bg.addColorStop(1, "#020617");
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < 8; i++) {
+    const x = (i / 8) * w + Math.sin(t * 0.0003 + i) * 40;
+    const ray = ctx.createLinearGradient(x, 0, x + 130, h);
+    ray.addColorStop(0, "rgba(125, 211, 252, 0.13)");
+    ray.addColorStop(0.45, "rgba(125, 211, 252, 0.035)");
+    ray.addColorStop(1, "rgba(125, 211, 252, 0)");
+
+    ctx.beginPath();
+    ctx.moveTo(x - 80, 0);
+    ctx.lineTo(x + 90, 0);
+    ctx.lineTo(x + 240, h);
+    ctx.lineTo(x - 220, h);
+    ctx.closePath();
+    ctx.fillStyle = ray;
+    ctx.fill();
+  }
+
+  const mouseGlow = ctx.createRadialGradient(
+    mouse.x, mouse.y, 0,
+    mouse.x, mouse.y, 260
+  );
+  mouseGlow.addColorStop(0, "rgba(45, 212, 191, 0.12)");
+  mouseGlow.addColorStop(1, "rgba(45, 212, 191, 0)");
+
+  ctx.fillStyle = mouseGlow;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function drawSeaFloor(t) {
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+
+  ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
+  ctx.beginPath();
+  ctx.moveTo(0, h);
+  for (let x = 0; x <= w; x += 80) {
+    const y = h - 35 + Math.sin(x * 0.012 + t * 0.0008) * 18;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(w, h);
+  ctx.closePath();
+  ctx.fill();
+
+  for (let i = 0; i < 30; i++) {
+    const x = (i * 73 + Math.sin(i) * 30) % w;
+    const base = h - 24;
+    const len = 25 + Math.sin(t * 0.001 + i) * 8;
+
+    ctx.strokeStyle = "rgba(34, 211, 238, 0.18)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, base);
+    ctx.quadraticCurveTo(
+      x + Math.sin(t * 0.0015 + i) * 18,
+      base - len * 0.55,
+      x + Math.sin(t * 0.001 + i) * 26,
+      base - len
+    );
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function animate(t) {
+  ctx.clearRect(0, 0, w, h);
+
+  drawBackground(t);
+
+  particles.forEach(p => {
+    p.update();
+    p.draw();
+  });
+
+  jellyfish
+    .sort((a, b) => a.size - b.size)
+    .forEach(j => {
+      j.update(t);
+      j.draw(t);
+    });
+
+  drawSeaFloor(t);
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

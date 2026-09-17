@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glowing Deep Sea Canvas</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="oceanCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('oceanCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let jellyfishArray = [];
+    let bubbleArray = [];
+
+    // Resize handling
+    function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Utility: Random number generator
+    const random = (min, max) => Math.random() * (max - min) + min;
+
+    class Jellyfish {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            this.x = random(0, width);
+            this.y = -100; // Start above the screen
+            this.size = random(20, 50);
+            this.speed = random(0.5, 2);
+            
+            // Pick a neon color (Cyan to Magenta range)
+            const hue = random(180, 340); 
+            this.color = `hsla(${hue}, 100%, 70%, 0.6)`;
+            this.glowColor = `hsla(${hue}, 100%, 50%, 1)`;
+            
+            // Swaying properties
+            this.swaySpeed = random(0.02, 0.05);
+            this.swayOffset = random(0, Math.PI * 2);
+        }
+
+        update() {
+            // Move down
+            this.y += this.speed;
+
+            // Sway side to side using sine wave
+            const sway = Math.sin(Date.now() * this.swaySpeed + this.swayOffset) * (this.size / 2);
+            this.x += sway * 0.1;
+
+            // If it goes off the bottom, reset to top
+            if (this.y > height + 50) {
+                this.reset();
+            }
+        }
+
+        draw() {
+            ctx.save();
+            
+            // Apply Glow Effect
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = this.glowColor;
+            ctx.strokeStyle = this.color;
+            ctx.fillStyle = this.color;
+            ctx.lineWidth = 3;
+
+            // Calculate sway position for this frame
+            const sway = Math.sin(Date.now() * this.swaySpeed + this.swayOffset) * (this.size / 2);
+
+            ctx.translate(this.x, this.y);
+
+            // Draw Body (Bell shape)
+            ctx.beginPath();
+            ctx.ellipse(0, -10, this.size, this.size * 0.6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw Mouth
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(0, -5, this.size * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Tentacles using Bezier curves for fluid look
+            const tentacleCount = 8;
+            const startX = -this.size / 2 + sway;
+            
+            for (let i = 0; i < tentacleCount; i++) {
+                ctx.beginPath();
+                
+                // Start point at bottom of bell
+                let cx = startX + (i * (this.size / 2)) / (tentacleCount - 1);
+                let cy = this.size / 2;
+
+                // Control points for curve
+                let cp1x = cx - (Math.random() * 10);
+                let cp1y = this.size;
+                
+                let cp2x = cx + (sway * 0.5);
+                let cp2y = this.size + 30;
+
+                ctx.moveTo(cx, cy);
+                ctx.quadraticCurveTo(cp1x, cp1y, cp2x, cp2y); // Curve out
+                
+                // Add slight randomness to length
+                let endY = this.size + random(40, 80);
+                
+                ctx.lineTo(cx, endY); // Straight down
+                ctx.quadraticCurveTo(cp2x, cp2y - 10, cp2x, cy); // Curve back in
+
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+    }
+
+    class Bubble {
+        constructor() {
+            this.reset();
+        }
+        reset() {
+            this.x = random(0, width);
+            this.y = height + random(0, 100);
+            this.radius = random(1, 4);
+            this.speed = random(1, 3);
+            this.opacity = random(0.1, 0.5);
+        }
+        update() {
+            this.y -= this.speed;
+            if (this.y < -10) this.reset();
+        }
+        draw() {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    // Initialize Objects
+    for (let i = 0; i < 15; i++) {
+        jellyfishArray.push(new Jellyfish());
+    }
+    for (let i = 0; i < 30; i++) {
+        bubbleArray.push(new Bubble());
+    }
+
+    // Background Gradient
+    function drawBackground() {
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, '#051927'); // Deep Blue
+        gradient.addColorStop(1, '#000000'); // Black
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+    }
+
+    // Animation Loop
+    function animate() {
+        drawBackground();
+
+        // Draw Bubbles first (so they are behind jellyfish)
+        bubbleArray.forEach(bubble => {
+            bubble.update();
+            bubble.draw();
+        });
+
+        // Draw Jellyfish
+        jellyfishArray.forEach(jellyfish => {
+            jellyfish.update();
+            jellyfish.draw();
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+</script>
+</body>
+</html>

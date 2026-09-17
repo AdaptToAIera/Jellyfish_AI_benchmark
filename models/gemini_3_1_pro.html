@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Sea Glowing Jellyfish</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000511; /* Deep ocean dark blue */
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="oceanCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('oceanCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let jellies = [];
+        let particles = [];
+
+        // Setup canvas size
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Utility: random number generator
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // Jellyfish Class
+        class Jellyfish {
+            constructor() {
+                this.size = random(30, 70);
+                this.x = random(0, width);
+                this.y = random(height + this.size, height * 2);
+                this.vx = random(-0.5, 0.5);
+                this.vy = random(-1.5, -0.5);
+                
+                // Bioluminescent colors (cyan, blue, purple, pink)
+                this.hue = random(180, 320); 
+                this.phase = random(0, Math.PI * 2);
+                this.pulseSpeed = random(0.02, 0.05);
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.phase += this.pulseSpeed;
+
+                // Drift sideways with a sine wave for natural movement
+                this.x += Math.sin(this.phase) * 0.5;
+
+                // Reset position if it floats off the top
+                if (this.y < -this.size * 3) {
+                    this.y = height + this.size;
+                    this.x = random(0, width);
+                }
+                
+                // Wrap horizontally
+                if (this.x < -this.size) this.x = width + this.size;
+                if (this.x > width + this.size) this.x = -this.size;
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Pulsing animation for the bell and glow
+                let pulse = Math.sin(this.phase) * 0.15 + 0.85; // Values between 0.7 and 1.0
+                
+                ctx.scale(1 + Math.sin(this.phase)*0.05, 1 - Math.sin(this.phase)*0.05);
+
+                // Glow effect setup
+                ctx.shadowBlur = 25 * pulse;
+                ctx.shadowColor = `hsl(${this.hue}, 100%, 60%)`;
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 60%, ${0.4 * pulse})`;
+                ctx.strokeStyle = `hsla(${this.hue}, 100%, 75%, ${0.8 * pulse})`;
+                
+                ctx.globalCompositeOperation = "screen";
+
+                // Draw Jellyfish Bell (Head)
+                ctx.beginPath();
+                ctx.moveTo(-this.size, 0);
+                // Left curve, top curve, right curve
+                ctx.bezierCurveTo(-this.size, -this.size * 1.5, this.size, -this.size * 1.5, this.size, 0);
+                // Bottom curve (inner bell)
+                ctx.quadraticCurveTo(0, this.size * 0.2, -this.size, 0);
+                ctx.fill();
+                ctx.stroke();
+
+                // Draw Tentacles
+                ctx.lineWidth = 1.5;
+                ctx.shadowBlur = 10 * pulse;
+                
+                // Determine how many tentacles based on size
+                let numTentacles = Math.floor(this.size / 8); 
+                let spacing = (this.size * 1.6) / numTentacles;
+                let startX = -this.size * 0.8 + spacing / 2;
+
+                for (let i = 0; i < numTentacles; i++) {
+                    ctx.beginPath();
+                    let tX = startX + i * spacing;
+                    ctx.moveTo(tX, 0);
+                    
+                    let currentY = 0;
+                    let currentX = tX;
+                    let tentacleLength = this.size * random(2, 2.5);
+
+                    // Draw segmented wavy tentacle
+                    for (let j = 0; j < tentacleLength; j += 5) {
+                        currentY += 5;
+                        // Calculate wave offset based on phase and vertical position
+                        let waveOffset = Math.sin(this.phase * 2 + j * 0.1 + i) * (j * 0.08);
+                        ctx.lineTo(currentX + waveOffset, currentY);
+                    }
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        // Particle Class (Bubbles / Plankton)
+        class Particle {
+            constructor() {
+                this.x = random(0, width);
+                this.y = random(0, height);
+                this.size = random(0.5, 2.5);
+                this.vy = random(-1, -0.1);
+                this.opacity = random(0.1, 0.6);
+            }
+            update() {
+                this.y += this.vy;
+                if (this.y < 0) {
+                    this.y = height;
+                    this.x = random(0, width);
+                }
+            }
+            draw(ctx) {
+                ctx.fillStyle = `rgba(150, 200, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Initialize entities
+        function init() {
+            jellies = [];
+            particles = [];
+            
+            // Adjust amounts based on screen size so it doesn't look too cluttered
+            const numJellies = Math.floor(width / 150);
+            const numParticles = Math.floor(width / 5);
+
+            for (let i = 0; i < numJellies; i++) {
+                jellies.push(new Jellyfish());
+            }
+            for (let i = 0; i < numParticles; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        // Draw Deep Sea Background Gradient
+        function drawBackground() {
+            let gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#001a33');   // Darker blue at top
+            gradient.addColorStop(1, '#000511');   // Pitch black/navy at bottom
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // Main Animation Loop
+        function animate() {
+            // Draw background every frame to clear canvas
+            drawBackground();
+
+            // Update and draw particles
+            particles.forEach(p => {
+                p.update();
+                p.draw(ctx);
+            });
+
+            // Update and draw jellyfish
+            jellies.forEach(j => {
+                j.update();
+                j.draw(ctx);
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deep Sea Jellyfish</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#000}
+  canvas{display:block}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W,H;
+function resize(){
+  W = canvas.width = innerWidth;
+  H = canvas.height = innerHeight;
+}
+addEventListener('resize', resize);
+resize();
+
+const colors = ['#ff6ec7','#7affff','#ffe66d','#ff9f1c','#a855f7','#5bff9e'];
+
+class Jellyfish{
+  constructor(){
+    this.x = Math.random()*W;
+    this.y = Math.random()*H*0.6 - 100;
+    this.size = 40 + Math.random()*70;
+    this.color = colors[Math.floor(Math.random()*colors.length)];
+    this.speedY = 0.2 + Math.random()*0.6;
+    this.swayAmp = 20 + Math.random()*40;
+    this.phase = Math.random()*Math.PI*2;
+    this.tentacles = 8 + Math.floor(Math.random()*8);
+  }
+  update(t){
+    this.y += this.speedY;
+    this.x += Math.sin(t*0.001 + this.phase)*0.3;
+    if(this.y > H + 150){ this.y = -200; this.x = Math.random()*W; }
+  }
+  draw(ctx,t){
+    ctx.save();
+    ctx.translate(this.x + Math.sin(t*0.0015 + this.phase)*this.swayAmp, this.y);
+    const pulse = 1 + Math.sin(t*0.003 + this.phase)*0.07;
+    ctx.scale(pulse,pulse);
+
+    // glow bell
+    const grad = ctx.createRadialGradient(0,-this.size*0.2,5,0,0,this.size);
+    grad.addColorStop(0,'rgba(255,255,255,0.25)');
+    grad.addColorStop(0.5,this.color);
+    grad.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 35;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0,0,this.size*0.8,this.size,0,0,Math.PI*2);
+    ctx.fill();
+
+    // tentacles
+    ctx.shadowBlur = 20;
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    for(let i=0;i<this.tentacles;i++){
+      const a = (i/this.tentacles)*Math.PI*2 - Math.PI/2;
+      const x0 = Math.cos(a)*this.size*0.5;
+      const y0 = Math.sin(a)*this.size*0.5 + this.size*0.3;
+      ctx.beginPath();
+      ctx.moveTo(x0,y0);
+      for(let j=1;j<=14;j++){
+        const s=j/14;
+        const wave = Math.sin(t*0.002 + this.phase + i*0.8 + s*6)*s*18;
+        const x = x0 + Math.cos(a)*j*9 + wave*Math.sin(a);
+        const y = y0 + j*13 + wave*Math.cos(a);
+        ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+class Particle{
+  constructor(){ this.reset(); }
+  reset(){
+    this.x = Math.random()*W;
+    this.y = Math.random()*H;
+    this.r = 1+Math.random()*2;
+    this.s = 0.2+Math.random()*0.8;
+    this.a = 0.3+Math.random()*0.7;
+  }
+  update(){ this.y -= this.s; if(this.y<0) this.reset(); }
+  draw(ctx){ ctx.fillStyle=`rgba(255,255,255,${this.a})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); }
+}
+
+class Bubble{
+  constructor(){
+    this.x = Math.random()*W;
+    this.y = H + Math.random()*200;
+    this.r = 2+Math.random()*6;
+    this.s = 0.5+Math.random()*1.2;
+  }
+  update(){ this.y -= this.s; if(this.y<-20){ this.y=H+20; this.x=Math.random()*W; } }
+  draw(ctx){ ctx.strokeStyle='rgba(180,220,255,0.3)'; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.stroke(); }
+}
+
+const jellies = Array.from({length:9},()=>new Jellyfish());
+const plankton = Array.from({length:200},()=>new Particle());
+const bubbles = Array.from({length:60},()=>new Bubble());
+
+function drawBackground(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#001a33');
+  g.addColorStop(0.6,'#000814');
+  g.addColorStop(1,'#000000');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,W,H);
+
+  // caustic light rays
+  ctx.globalAlpha = 0.07;
+  for(let i=0;i<3;i++){
+    const grad = ctx.createLinearGradient(W*i/3 -100,0,W*i/3 +100,H);
+    grad.addColorStop(0,'rgba(100,200,255,0)');
+    grad.addColorStop(0.5,'rgba(100,200,255,1)');
+    grad.addColorStop(1,'rgba(100,200,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(W*i/3 -100,0);
+    ctx.lineTo(W*i/3 +100,H);
+    ctx.lineTo(W*i/3 +200,H);
+    ctx.lineTo(W*i/3,0);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // sea floor
+  ctx.fillStyle = '#0a1a2a';
+  ctx.beginPath();
+  ctx.ellipse(W/2, H-40, W*0.7, 80, 0, 0, Math.PI*2);
+  ctx.fill();
+}
+
+let last = 0;
+function loop(t){
+  // fade trail
+  ctx.fillStyle = 'rgba(0,0,10,0.15)';
+  ctx.fillRect(0,0,W,H);
+
+  drawBackground();
+
+  bubbles.forEach(b=>{b.update(); b.draw(ctx);});
+  plankton.forEach(p=>{p.update(); p.draw(ctx);});
+
+  jellies.forEach(j=>{j.update(t); j.draw(ctx,t);});
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

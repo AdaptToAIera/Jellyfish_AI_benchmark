@@ -1,0 +1,9 @@
+{
+  "name": "ai-jellyfish-benchmark",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-worker.mjs",
+    "validate": "node scripts/validate-artifact.mjs"
+  }
+}

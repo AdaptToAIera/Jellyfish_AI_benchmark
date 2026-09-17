@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local vs cloud AI: glowing jellyfish HTML canvas benchmark</title>
+  <meta name="description" content="A bilingual expert review comparing local and cloud AI models on a single HTML canvas prompt with glowing jellyfish." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23020817'/%3E%3Cpath d='M8 16c0-6 4-10 8-10s8 4 8 10c0 3-3 4-8 4s-8-1-8-4Z' fill='%237de9ff' fill-opacity='.86'/%3E%3Cpath d='M11 20c0 4-2 5-2 8M15 20c0 5-2 5-1 8M19 20c0 5 2 5 1 8M23 20c0 4 2 5 2 8' stroke='%23f472d0' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <div class="prefs-bar" aria-label="Display preferences">
+        <div class="segmented" role="group" aria-label="Language">
+          <button type="button" data-pref-lang="en">EN</button>
+          <button type="button" data-pref-lang="sk">SK</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-pref-theme="dark">Dark</button>
+          <button type="button" data-pref-theme="light">Light</button>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Benchmark navigation">
+        <a class="is-active" href="index.html"><span data-i18n="en">Review</span><span data-i18n="sk">Recenzia</span></a>
+        <a href="gallery.html"><span data-i18n="en">HTML previews</span><span data-i18n="sk">HTML náhľady</span></a>
+        <a href="compare.html"><span data-i18n="en">Head to head</span><span data-i18n="sk">Priame porovnanie</span></a>
+      </nav>
+      <p class="eyebrow"><span data-i18n="en">AI benchmark from one prompt</span><span data-i18n="sk">AI benchmark z jedného promptu</span></p>
+      <h1><span data-i18n="en">Local models are no longer just a cheaper substitute for the cloud</span><span data-i18n="sk">Lokálne modely už nie sú iba lacnejšia náhrada cloudu</span></h1>
+      <p class="lead" data-i18n="en">
+        One prompt, eighteen comparable HTML canvas outputs, and a practical question:
+        which model can create a colorful animated deep-sea jellyfish scene that looks good,
+        moves well, and still holds together as code?
+      </p>
+      <p class="lead" data-i18n="sk">
+        Jeden prompt, osemnásť porovnateľných HTML canvas výstupov a praktická otázka:
+        ktorý model dokáže vytvoriť farebnú animovanú deep-sea scénu s medúzami, ktorá dobre vyzerá,
+        dobre sa hýbe a zároveň drží pokope ako kód?
+      </p>
+    </div>
+    <aside class="prompt-panel" aria-label="Test prompt">
+      <span>Prompt</span>
+      <code>create a colorful animated deep sea scene with glowing jellyfish using HTML canvas</code>
+    </aside>
+  </header>
+
+  <main>
+    <section class="section live-top" aria-labelledby="visual-winners-title">
+      <div class="section-copy">
+        <p class="eyebrow"><span data-i18n="en">Visual impression</span><span data-i18n="sk">Vizuálny dojem</span></p>
+        <h2 id="visual-winners-title"><span data-i18n="en">The strongest visual results are Qwen38 27B Q8 and GLM 53 IQ4 XS</span><span data-i18n="sk">Vizuálne najsilnejšie výsledky sú Qwen38 27B Q8 a GLM 53 IQ4 XS</span></h2>
+        <p data-i18n="en">
+          The purely visual ranking tells an important story: the richest output is not automatically the most beautiful one.
+          GLM IQ2 is technically and visually dense, but IQ4 feels cleaner. Qwen38 27B Q8 goes further and turns the simple prompt
+          into a small interactive deep-sea world.
+        </p>
+        <p data-i18n="sk">
+          Čisto vizuálne hodnotenie ukázalo dôležitú vec: najbohatší výstup nemusí byť automaticky najkrajší.
+          GLM IQ2 je technicky aj obsahovo nabitý, ale IQ4 pôsobí čistejšie. Qwen38 27B Q8 ide ešte ďalej a z jednoduchého promptu
+          robí malý interaktívny morský svet.
+        </p>
+      </div>
+      <div class="preview-grid featured" id="featuredPreviews"></div>
+    </section>
+
+    <section class="section verdict" aria-labelledby="verdict-title">
+      <div>
+        <p class="eyebrow"><span data-i18n="en">Verdict</span><span data-i18n="sk">Verdikt</span></p>
+        <h2 id="verdict-title"><span data-i18n="en">Cloud is more consistent, but the best local models are already in the top tier</span><span data-i18n="sk">Cloud je konzistentnejší, ale najlepšie lokálne modely už patria do prvej ligy</span></h2>
+      </div>
+      <div class="verdict-grid">
+        <article>
+          <h3><span data-i18n="en">Visual quality</span><span data-i18n="sk">Vizuálna kvalita</span></h3>
+          <p data-i18n="en">Qwen38 27B Q8 is the strongest complete experience. GLM 53 IQ4 XS is the most elegant local visual output.</p>
+          <p data-i18n="sk">Qwen38 27B Q8 je najpresvedčivejší kompletný zážitok. GLM 53 IQ4 XS je najelegantnejší lokálny vizuálny výstup.</p>
+        </article>
+        <article>
+          <h3><span data-i18n="en">Code quality</span><span data-i18n="sk">Kvalita kódu</span></h3>
+          <p data-i18n="en">ChatGPT 5.6 Sol high and Qwen38 have the best mix of structure, responsive canvas handling, and stable object state.</p>
+          <p data-i18n="sk">ChatGPT 5.6 Sol high a Qwen38 majú najlepšiu kombináciu štruktúry, responzívneho canvasu a stabilného objektového stavu.</p>
+        </article>
+        <article>
+          <h3>UX/UI</h3>
+          <p data-i18n="en">Qwen38 is the only result that turns the scene into a controllable product: depth gauge, current, pause, spawn, bubbles, and FPS.</p>
+          <p data-i18n="sk">Qwen38 je jediný výstup, ktorý zo scény spravil ovládateľný produkt: hĺbkomer, prúd, pauza, spawn, bubliny a FPS.</p>
+        </article>
+        <article>
+          <h3><span data-i18n="en">Responsiveness</span><span data-i18n="sk">Responzivita</span></h3>
+          <p data-i18n="en">The best outputs treat canvas size, DPR, resize behavior, and large-window viewing as part of the product, not as an afterthought.</p>
+          <p data-i18n="sk">Najlepšie výstupy berú veľkosť canvasu, DPR, resize správanie a veľké zobrazenie ako súčasť produktu, nie ako dodatočný detail.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section explore-entry" aria-labelledby="explore-title">
+      <div>
+        <p class="eyebrow"><span data-i18n="en">Interactive appendix</span><span data-i18n="sk">Interaktívna príloha</span></p>
+        <h2 id="explore-title"><span data-i18n="en">Browse every HTML output or compare two models directly</span><span data-i18n="sk">Prezri si každý HTML výstup alebo porovnaj dva modely priamo</span></h2>
+        <p data-i18n="en">
+          The benchmark now has a preview gallery, large-window viewer, head-to-head comparison, and secure user voting on the deployed site.
+        </p>
+        <p data-i18n="sk">
+          Benchmark má teraz galériu náhľadov, veľké zobrazenie, priame porovnanie dvoch modelov a bezpečné hlasovanie používateľov na publikovanej stránke.
+        </p>
+      </div>
+      <div class="action-row">
+        <a class="button-link primary" href="gallery.html"><span data-i18n="en">Open HTML previews</span><span data-i18n="sk">Otvoriť náhľady</span></a>
+        <a class="button-link" href="compare.html"><span data-i18n="en">Head to head</span><span data-i18n="sk">Priame porovnanie</span></a>
+      </div>
+    </section>
+
+    <section class="section score-table-section" aria-labelledby="ranking-title">
+      <div class="table-head">
+        <div>
+          <p class="eyebrow"><span data-i18n="en">Comparable ranking</span><span data-i18n="sk">Porovnateľný rebríček</span></p>
+          <h2 id="ranking-title"><span data-i18n="en">Model ranking</span><span data-i18n="sk">Rebríček modelov</span></h2>
+        </div>
+        <div class="filters" aria-label="Model filter">
+          <button class="filter is-active" data-filter="all"><span data-i18n="en">All</span><span data-i18n="sk">Všetky</span></button>
+          <button class="filter" data-filter="Lokálny"><span data-i18n="en">Local</span><span data-i18n="sk">Lokálne</span></button>
+          <button class="filter" data-filter="Cloud">Cloud</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Model</th>
+              <th>Type</th>
+              <th>Visual</th>
+              <th>Code</th>
+              <th>Animation</th>
+              <th>UX</th>
+              <th>Responsive</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rankingRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section article-body" aria-labelledby="article-title">
+      <p class="eyebrow"><span data-i18n="en">Review</span><span data-i18n="sk">Recenzia</span></p>
+      <h2 id="article-title"><span data-i18n="en">What the benchmark actually shows</span><span data-i18n="sk">Čo benchmark v skutočnosti ukazuje</span></h2>
+      <div class="article-columns">
+        <div>
+          <p data-i18n="en">
+            This benchmark is not a general intelligence test. It is a practical test of how models reason through a small creative-programming task.
+            The prompt does not ask for a framework, a library, or an explanation. It asks for one working HTML canvas. That is why the differences are so visible:
+            weaker outputs draw an ellipse, add glow, and let it float. Stronger outputs think in layers: background, particles, light, bubbles, jellyfish, depth,
+            interaction, and performance.
+          </p>
+          <p data-i18n="sk">
+            Tento benchmark nie je test všeobecnej inteligencie. Je to praktická skúška toho, ako modely rozmýšľajú pri malej kreatívno-programátorskej úlohe.
+            Prompt nežiada framework, knižnicu ani vysvetlenie. Chce jeden funkčný HTML canvas. Práve preto sú rozdiely také viditeľné:
+            slabšie výstupy nakreslia elipsu, pridajú glow a nechajú ju plávať. Silnejšie výstupy rozmýšľajú vo vrstvách: pozadie, častice, svetlo, bubliny,
+            medúzy, hĺbka, interakcia a výkon.
+          </p>
+        </div>
+        <div>
+          <p data-i18n="en">
+            Cloud models are generally more consistent: none of the comparable cloud outputs failed the basic runtime check. Local models show a wider spread,
+            but the best local entries are no longer merely “good for local.” Qwen38 27B Q8 and GLM 53 IQ4 XS are strong enough to compete with, and in some visual
+            aspects beat, several cloud outputs.
+          </p>
+          <p data-i18n="sk">
+            Cloudové modely sú všeobecne konzistentnejšie: žiadny z porovnateľných cloudových výstupov nezlyhal v základnej runtime kontrole. Lokálne modely majú
+            väčší rozptyl, ale najlepšie lokálne výstupy už nie sú iba „dobré na lokálny model“. Qwen38 27B Q8 a GLM 53 IQ4 XS dokážu konkurovať viacerým cloudovým
+            výstupom a v niektorých vizuálnych aspektoch ich aj prekonať.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section comparison" aria-labelledby="comparison-title">
+      <p class="eyebrow"><span data-i18n="en">Details</span><span data-i18n="sk">Detaily</span></p>
+      <h2 id="comparison-title"><span data-i18n="en">Model by model</span><span data-i18n="sk">Model po modeli</span></h2>
+      <div class="model-grid" id="modelCards"></div>
+    </section>
+
+    <section class="section methodology" aria-labelledby="methodology-title">
+      <div>
+        <p class="eyebrow"><span data-i18n="en">Methodology</span><span data-i18n="sk">Metodika</span></p>
+        <h2 id="methodology-title"><span data-i18n="en">How to add the next test</span><span data-i18n="sk">Ako pridať ďalší test</span></h2>
+        <p data-i18n="en">
+          The article is data-driven. To add a new model, put its HTML output into <code>models/</code> and add one record to
+          <code>data/models.json</code>. Ranking, table, cards, filters, and live previews are generated from that data.
+        </p>
+        <p data-i18n="sk">
+          Článok je postavený dátovo. Nový model pridáš tak, že jeho HTML výstup vložíš do <code>models/</code> a doplníš jeden záznam do
+          <code>data/models.json</code>. Rebríček, tabuľka, karty, filtre aj živé náhľady sa generujú z týchto dát.
+        </p>
+      </div>
+      <ol id="methodologyList"></ol>
+    </section>
+  </main>
+
+  <script src="data/models-data.js"></script>
+  <script src="preferences.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

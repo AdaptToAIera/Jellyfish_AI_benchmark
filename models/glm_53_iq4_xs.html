@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Sea — Glowing Jellyfish</title>
+<style>
+  html, body { margin:0; height:100%; overflow:hidden; background:#02030a; }
+  #sea { display:block; width:100vw; height:100vh; cursor:crosshair; }
+  #hint {
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    color:rgba(180,220,255,.55); font:500 12px/1 system-ui,sans-serif;
+    letter-spacing:.14em; text-transform:uppercase; pointer-events:none;
+    animation:fade 7s ease forwards;
+  }
+  @keyframes fade { 0%,55%{opacity:1} 100%{opacity:0} }
+</style>
+</head>
+<body>
+<canvas id="sea"></canvas>
+<div id="hint">move — the sea reacts &nbsp;·&nbsp; click to spawn a jellyfish</div>
+<script>
+const canvas = document.getElementById('sea');
+const ctx = canvas.getContext('2d');
+const TAU = Math.PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+let W, H, DPR;
+function resize() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W * DPR; canvas.height = H * DPR;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- input ----------
+const mouse = { x: -9999, y: -9999 };
+window.addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+// ---------- light rays ----------
+const rays = [];
+for (let i = 0; i < 6; i++) rays.push({
+  x: rand(0.08, 0.92), w: rand(40, 110),
+  sway: rand(0.05, 0.15), phase: rand(0, TAU), alpha: rand(0.03, 0.075)
+});
+
+function drawRays(t) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (const r of rays) {
+    const cx = r.x * W + Math.sin(t * r.sway + r.phase) * 70;
+    const g = ctx.createLinearGradient(0, 0, 0, H * 0.95);
+    g.addColorStop(0, `rgba(120,190,255,${r.alpha * (0.7 + 0.3 * Math.sin(t * 0.5 + r.phase))})`);
+    g.addColorStop(1, 'rgba(120,190,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(cx - r.w * 0.4, -20);
+    ctx.lineTo(cx + r.w * 0.4, -20);
+    ctx.lineTo(cx + r.w * 2.4, H);
+    ctx.lineTo(cx - r.w * 2.4, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- plankton ----------
+const plankton = [];
+for (let i = 0; i < 90; i++) plankton.push({
+  x: Math.random() * W, y: Math.random() * H,
+  r: rand(0.6, 2.2), vx: rand(-4, 4), vy: rand(-6, -1),
+  tw: rand(0, TAU), twS: rand(0.5, 2),
+  hue: pick([190, 200, 280, 320])
+});
+
+function drawPlankton(t, dt) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of plankton) {
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; }
+    if (p.x < -5) p.x = W + 5;
+    if (p.x > W + 5) p.x = -5;
+    const a = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(t * p.twS + p.tw));
+    ctx.fillStyle = `hsla(${p.hue},95%,75%,${a})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, TAU); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------- bubbles ----------
+const bubbles = [];
+function resetBubble(b, init) {
+  b.x = Math.random() * W;
+  b.y = init ? Math.random() * H : H + rand(10, 80);
+  b.r = rand(1.5, 5);
+  b.speed = rand(22, 60);
+  b.wob = rand(0, TAU); b.wobS = rand(0.5, 1.6);
+}
+for (let i = 0; i < 26; i++) { const b = {}; resetBubble(b, true); bubbles.push(b); }
+
+function drawBubbles(t, dt) {
+  for (const b of bubbles) {
+    b.y -= b.speed * dt;
+    b.x += Math.sin(t * b.wobS + b.wob) * 12 * dt;
+    if (b.y < -10) resetBubble(b, false);
+    ctx.strokeStyle = 'rgba(180,230,255,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, TAU); ctx.stroke();
+    ctx.fillStyle = 'rgba(210,245,255,0.3)';
+    ctx.beginPath(); ctx.arc(b.x - b.r * 0.35, b.y - b.r * 0.35, b.r * 0.35, 0, TAU); ctx.fill();
+  }
+}
+
+// ---------- jellyfish ----------
+const PALETTE = [190, 320, 270, 25, 300, 160, 345];
+const jellies = [];
+
+class Jelly {
+  constructor(x, y, hue) {
+    this.x = x; this.y = y;
+    this.r = rand(28, 68);
+    this.hue = hue ?? pick(PALETTE);
+    this.phase = rand(0, TAU);
+    this.pulseSpeed = rand(0.9, 1.5);
+    this.vx = rand(-10, 10);
+    this.baseVy = rand(-26, -12);
+    this.swayAmp = rand(18, 45); this.swayFreq = rand(0.2, 0.5); this.swayPhase = rand(0, TAU);
+    this.tentacles = [];
+    const n = Math.floor(rand(7, 11));
+    for (let i = 0; i < n; i++) this.tentacles.push({
+      t: n === 1 ? 0.5 : i / (n - 1),
+      len: rand(1.4, 2.4), sway: rand(0.6, 1.4),
+      phase: rand(0, TAU), width: rand(1, 2.2)
+    });
+    this.arms = [];
+    const na = Math.floor(rand(3, 5));
+    for (let i = 0; i < na; i++) this.arms.push({
+      t: 0.5 + (i - (na - 1) / 2) * 0.12,
+      len: rand(0.8, 1.3), sway: rand(0.4, 0.9),
+      phase: rand(0, TAU), width: rand(3, 6)
+    });
+  }
+
+  update(t, dt) {
+    this.phase += dt * this.pulseSpeed;
+    const p = Math.sin(this.phase);
+    this.y += (this.baseVy - p * 12) * dt;
+    this.x += this.vx * dt + Math.cos(t * this.swayFreq + this.swayPhase) * this.swayAmp * dt;
+
+    // gentle repulsion from cursor
+    const dx = this.x - mouse.x, dy = this.y - mouse.y;
+    const d2 = dx * dx + dy * dy, R = 190;
+    if (d2 < R * R && d2 > 1) {
+      const d = Math.sqrt(d2), f = (1 - d / R) * 90;
+      this.x += (dx / d) * f * dt;
+      this.y += (dy / d) * f * dt;
+    }
+
+    const m = this.r * 3.2;
+    if (this.x < -m) this.x = W + m;
+    if (this.x > W + m) this.x = -m;
+    if (this.y < -m) this.y = H + m;
+    if (this.y > H + m) this.y = -m;
+  }
+
+  drawStrand(sx, sy, s, t, stretch, hue, light, alpha, wMul) {
+    const SEG = 13, len = s.len * this.r;
+    let px = sx, py = sy;
+    for (let i = 1; i <= SEG; i++) {
+      const f = i / SEG;
+      const wave = Math.sin(t * s.sway + s.phase + f * 4) * this.r * 0.38 * f * f;
+      const x = sx + wave - this.vx * 0.06 * f;
+      const y = sy + len * f * (0.92 + 0.18 * stretch);
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y);
+      ctx.lineWidth = s.width * wMul * (1 - f * 0.6);
+      ctx.strokeStyle = `hsla(${hue},95%,${light}%,${alpha})`;
+      ctx.stroke();
+      px = x; py = y;
+    }
+  }
+
+  draw(t) {
+    const p = Math.sin(this.phase);
+    const squish = 1 + p * 0.10, stretch = 1 - p * 0.14;
+    const r = this.r, bw = r * squish, bh = r * 1.25 * stretch;
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.globalAlpha = 0.55 + 0.45 * (r / 68);
+    ctx.lineCap = 'round';
+    ctx.globalCompositeOperation = 'lighter';
+
+    // outer glow halo
+    const g = ctx.createRadialGradient(0, -bh * 0.4, r * 0.2, 0, 0, r * 3);
+    g.addColorStop(0, `hsla(${this.hue},90%,60%,${0.20 + 0.06 * p})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, r * 3, 0, TAU); ctx.fill();
+
+    // tentacles + oral arms (behind the bell)
+    for (const s of this.tentacles) {
+      const sx = (s.t * 2 - 1) * bw * 0.85, sy = r * 0.05;
+      this.drawStrand(sx, sy, s, t, stretch, this.hue, 70, 0.30, 1);
+    }
+    for (const s of this.arms) {
+      const sx = (s.t * 2 - 1) * bw * 0.3, sy = r * 0.05;
+      this.drawStrand(sx, sy, s, t, stretch, this.hue, 88, 0.22, 1);
+    }
+
+    // bell
+    ctx.beginPath();
+    ctx.moveTo(-bw, 0);
+    ctx.bezierCurveTo(-bw, -bh * 1.12, bw, -bh * 1.12, bw, 0);
+    ctx.quadraticCurveTo(bw * 0.5, r * 0.18, 0, r * 0.12);
+    ctx.quadraticCurveTo(-bw * 0.5, r * 0.18, -bw, 0);
+    ctx.closePath();
+    const bg = ctx.createRadialGradient(0, -bh * 0.45, r * 0.1, 0, -bh * 0.3, bw * 1.25);
+    bg.addColorStop(0, `hsla(${this.hue},95%,80%,0.85)`);
+    bg.addColorStop(0.55, `hsla(${this.hue},90%,60%,0.38)`);
+    bg.addColorStop(1, `hsla(${this.hue},90%,50%,0.06)`);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.strokeStyle = `hsla(${this.hue},95%,78%,0.5)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // inner core
+    ctx.beginPath();
+    ctx.ellipse(0, -bh * 0.42, bw * 0.42, bh * 0.34, 0, 0, TAU);
+    ctx.fillStyle = `hsla(${this.hue},100%,88%,${0.35 + 0.15 * p})`;
+    ctx.fill();
+
+    // bioluminescent rim dots
+    for (let i = 0; i < 9; i++) {
+      const fx = (i / 8) * 2 - 1;
+      const x = fx * bw * 0.92;
+      const y = r * 0.1 * Math.cos(fx * Math.PI / 2);
+      const a = 0.4 + 0.6 * Math.abs(Math.sin(t * 2.5 + i * 1.3 + this.phase));
+      ctx.fillStyle = `hsla(${this.hue},100%,85%,${a * 0.8})`;
+      ctx.beginPath(); ctx.arc(x, y, 1.6, 0, TAU); ctx.fill();
+    }
+
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+  }
+}
+
+for (let i = 0; i < 7; i++) jellies.push(new Jelly(rand(0, W), rand(H * 0.15, H * 0.9)));
+
+canvas.addEventListener('pointerdown', e => {
+  jellies.push(new Jelly(e.clientX, e.clientY));
+  if (jellies.length > 14) jellies.shift();
+});
+
+// ---------- background ----------
+function drawBackground(t) {
+  const hueShift = Math.sin(t * 0.05) * 8;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, `hsl(${218 + hueShift},80%,11%)`);
+  g.addColorStop(0.5, `hsl(${228 + hueShift},75%,6%)`);
+  g.addColorStop(1, 'hsl(235,70%,3%)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ---------- main loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+  const t = now / 1000;
+
+  drawBackground(t);
+  drawRays(t);
+  drawPlankton(t, dt);
+
+  jellies.sort((a, b) => a.r - b.r);
+  for (const j of jellies) { j.update(t, dt); j.draw(t); }
+
+  drawBubbles(t, dt);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

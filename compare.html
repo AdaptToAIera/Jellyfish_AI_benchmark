@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Head to head | AI jellyfish benchmark</title>
+  <meta name="description" content="Compare two AI-generated jellyfish canvas outputs side by side, including visual, code, UX, performance, and responsiveness scores." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23020817'/%3E%3Cpath d='M8 16c0-6 4-10 8-10s8 4 8 10c0 3-3 4-8 4s-8-1-8-4Z' fill='%237de9ff' fill-opacity='.86'/%3E%3Cpath d='M11 20c0 4-2 5-2 8M15 20c0 5-2 5-1 8M19 20c0 5 2 5 1 8M23 20c0 4 2 5 2 8' stroke='%23f472d0' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header compact">
+    <div>
+      <div class="prefs-bar" aria-label="Display preferences">
+        <div class="segmented" role="group" aria-label="Language">
+          <button type="button" data-pref-lang="en">EN</button>
+          <button type="button" data-pref-lang="sk">SK</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Theme">
+          <button type="button" data-pref-theme="dark">Dark</button>
+          <button type="button" data-pref-theme="light">Light</button>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="Benchmark navigation">
+        <a href="index.html"><span data-i18n="en">Review</span><span data-i18n="sk">Recenzia</span></a>
+        <a href="gallery.html"><span data-i18n="en">HTML previews</span><span data-i18n="sk">HTML náhľady</span></a>
+        <a class="is-active" href="compare.html"><span data-i18n="en">Head to head</span><span data-i18n="sk">Priame porovnanie</span></a>
+      </nav>
+      <p class="eyebrow"><span data-i18n="en">Direct comparison</span><span data-i18n="sk">Priame porovnanie</span></p>
+      <h1><span data-i18n="en">Head-to-head model comparison</span><span data-i18n="sk">Porovnanie modelov vedľa seba</span></h1>
+      <p class="lead" data-i18n="en">
+        Pick two outputs and compare the live scenes, score profile, code notes, UX notes, and responsiveness side by side.
+      </p>
+      <p class="lead" data-i18n="sk">
+        Vyber dva výstupy a porovnaj živé scény, skóre, poznámky ku kódu, UX aj responzivitu vedľa seba.
+      </p>
+    </div>
+    <aside class="prompt-panel">
+      <span>Tip</span>
+      <p data-i18n="en">Use Qwen38 vs GLM IQ4 for visual taste, or Qwen38 vs ChatGPT 5.6 Sol high for local-vs-cloud balance.</p>
+      <p data-i18n="sk">Na vizuálny vkus skús Qwen38 vs GLM IQ4, na lokál-vs-cloud balans Qwen38 vs ChatGPT 5.6 Sol high.</p>
+    </aside>
+  </header>
+
+  <main>
+    <section class="section compare-controls" aria-label="Choose models">
+      <label>
+        <span><span data-i18n="en">Left model</span><span data-i18n="sk">Ľavý model</span></span>
+        <select id="leftSelect"></select>
+      </label>
+      <label>
+        <span><span data-i18n="en">Right model</span><span data-i18n="sk">Pravý model</span></span>
+        <select id="rightSelect"></select>
+      </label>
+    </section>
+
+    <section class="head-grid" id="headGrid" aria-label="Head-to-head preview"></section>
+  </main>
+
+  <script src="data/models-data.js"></script>
+  <script src="preferences.js"></script>
+  <script src="explore.js"></script>
+</body>
+</html>

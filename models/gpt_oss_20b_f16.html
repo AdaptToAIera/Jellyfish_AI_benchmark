@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glowing Jellyfish Animation</title>
+<style>
+  body, html {margin:0; padding:0; overflow:hidden; background:#000;}
+  canvas {display:block;}          /* remove the tiny gap around the canvas */
+</style>
+</head>
+<body>
+<canvas id="sea"></canvas>
+
+<script>
+/* -------------------------------------------------------------
+   Utility helpers
+-------------------------------------------------------------*/
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+/* -------------------------------------------------------------
+   Jellyfish class
+-------------------------------------------------------------*/
+class Jellyfish {
+  constructor(width, height) {
+    this.width = width;
+    this.height = height;
+    this.reset();
+  }
+
+  reset() {
+    // Start somewhere above the canvas so they drift in
+    this.x = random(0, this.width);
+    this.y = random(-200, -50);
+    this.size = random(30, 70);      // overall scale
+    this.speed = random(0.5, 1.5);   // vertical speed
+    this.color = `hsl(${random(180, 360)}, 80%, 60%)`;
+    this.tentacleLength = this.size * 2; // length of tentacles
+  }
+
+  update() {
+    this.y += this.speed;
+    if (this.y - this.tentacleLength > this.height) this.reset();
+  }
+
+  draw(ctx) {
+    ctx.save();
+
+    // Position the jellyfish body
+    ctx.translate(this.x, this.y);
+
+    // Body: an ellipse with a soft glow
+    ctx.beginPath();
+    ctx.ellipse(0, 0, this.size * 0.6, this.size * 0.8, 0, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = this.size;      // glow radius
+    ctx.fill();
+
+    // Tentacles: simple curved lines below the body
+    const tentacleCount = 6 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < tentacleCount; i++) {
+      const angle = (i / tentacleCount) * Math.PI - Math.PI/2;
+      const xOffset = Math.sin(angle) * this.size * 0.5;
+      const yOffset = Math.cos(angle) * this.size * 0.5;
+
+      ctx.beginPath();
+      ctx.moveTo(xOffset, yOffset);
+      // Control points for a gentle curve
+      const ctrl1 = {x: xOffset + random(-10, 10), y: yOffset + this.tentacleLength / 3};
+      const ctrl2 = {x: xOffset + random(-10, 10), y: yOffset + (this.tentacleLength * 2) / 3};
+      ctx.bezierCurveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y,
+                        xOffset, yOffset + this.tentacleLength);
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+}
+
+/* -------------------------------------------------------------
+   Main animation logic
+-------------------------------------------------------------*/
+const canvas = document.getElementById('sea');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+
+// Resize canvas to fill the window
+function resize() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Create many jellyfish
+const jellyCount = 12;
+const jellyfish = Array.from({length: jellyCount}, () => new Jellyfish(width, height));
+
+// Background gradient (deep‑sea)
+function drawBackground() {
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
+  grad.addColorStop(0, '#001f3f');   // dark blue
+  grad.addColorStop(1, '#004d6b');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+}
+
+// Animation loop
+function animate() {
+  drawBackground();
+
+  jellyfish.forEach(j => {
+    j.update();
+    j.draw(ctx);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

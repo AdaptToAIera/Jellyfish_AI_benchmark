@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Sea Jellyfish</title>
+<style>
+* { margin: 0; padding: 0; }
+body { overflow: hidden; background: #000; }
+canvas { display: block; }
+#info {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  color: rgba(100, 200, 255, 0.5); font-family: 'Courier New', monospace;
+  font-size: 13px; letter-spacing: 2px; pointer-events: none;
+}
+</style>
+</head>
+<body>
+<canvas id="ocean"></canvas>
+<div id="info">✦ deep sea ✦</div>
+<script>
+const canvas = document.getElementById('ocean');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// --- Utilities ---
+const rand = (a, b) => Math.random() * (b - a) + a;
+const lerp = (a, b, t) => a + (b - a) * t;
+
+// --- Jellyfish ---
+class Jellyfish {
+  constructor() {
+    this.reset();
+    this.y = rand(0, H);
+    this.phase = rand(0, Math.PI * 2);
+  }
+
+  reset() {
+    this.x = rand(50, W - 50);
+    this.baseY = rand(H * 0.15, H * 0.85);
+    this.y = this.baseY;
+    this.size = rand(30, 80);
+    this.hue = rand(160, 320);
+    this.saturation = rand(70, 100);
+    this.lightness = rand(55, 75);
+    this.pulseSpeed = rand(0.8, 1.6);
+    this.driftX = rand(-0.3, 0.3);
+    this.driftY = rand(-0.15, 0.15);
+    this.tentacleCount = Math.floor(rand(5, 10));
+    this.tentacleLen = rand(40, 100);
+    this.wobbleSpeed = rand(0.5, 1.2);
+    this.alpha = rand(0.6, 0.95);
+    this.speed = rand(0.3, 0.8);
+    this.wanderAngle = rand(0, Math.PI * 2);
+  }
+
+  update(t) {
+    const pulse = Math.sin(t * this.pulseSpeed + this.phase);
+    this.pulseVal = pulse;
+
+    this.wanderAngle += rand(-0.01, 0.01);
+    this.x += Math.cos(this.wanderAngle) * this.driftX + this.driftX;
+    this.y += Math.sin(t * this.wobbleSpeed + this.phase) * 0.3 - 0.2 * this.speed;
+
+    if (this.y < -this.size * 3) {
+      this.y = H + this.size * 2;
+      this.x = rand(50, W - 50);
+    }
+    if (this.x < -100) this.x = W + 50;
+    if (this.x > W + 100) this.x = -50;
+  }
+
+  draw(t) {
+    const pulse = Math.sin(t * this.pulseSpeed + this.phase);
+    const bellW = this.size * (1 + pulse * 0.2);
+    const bellH = this.size * 0.8 * (1 - pulse * 0.15);
+    const x = this.x;
+    const y = this.y;
+
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+
+    // Outer glow
+    const glowR = this.size * 2.5;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+    glow.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness + 10}%, 0.3)`);
+    glow.addColorStop(0.4, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, 0.1)`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, glowR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tentacles
+    for (let i = 0; i < this.tentacleCount; i++) {
+      const tx = x + (i / (this.tentacleCount - 1) - 0.5) * bellW * 0.8;
+      const segments = 12;
+      ctx.beginPath();
+      ctx.moveTo(tx, y + bellH * 0.3);
+
+      let px = tx, py = y + bellH * 0.3;
+      for (let s = 1; s <= segments; s++) {
+        const prog = s / segments;
+        const wave = Math.sin(t * this.wobbleSpeed * 2 + i * 0.8 + prog * 4 + this.phase) * 8 * prog;
+        px = tx + wave + (i - this.tentacleCount / 2) * 1.5 * prog;
+        py = y + bellH * 0.3 + prog * this.tentacleLen * (1 + pulse * 0.1);
+        ctx.lineTo(px, py);
+      }
+
+      const tGrad = ctx.createLinearGradient(tx, y, tx, y + this.tentacleLen);
+      tGrad.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness + 15}%, 0.7)`);
+      tGrad.addColorStop(1, `hsla(${this.hue + 30}, ${this.saturation}%, ${this.lightness}%, 0)`);
+      ctx.strokeStyle = tGrad;
+      ctx.lineWidth = 2 - (segments / segments) * 1.5;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    // Oral arms (thicker, fewer)
+    for (let i = 0; i < 4; i++) {
+      const tx = x + (i / 3 - 0.5) * bellW * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(tx, y + bellH * 0.2);
+      let px = tx, py = y + bellH * 0.2;
+      for (let s = 1; s <= 8; s++) {
+        const prog = s / 8;
+        const wave = Math.sin(t * this.wobbleSpeed * 1.5 + i * 1.2 + prog * 3) * 12 * prog;
+        px = tx + wave;
+        py = y + bellH * 0.2 + prog * this.tentacleLen * 0.7;
+        ctx.lineTo(px, py);
+      }
+      ctx.strokeStyle = `hsla(${this.hue + 20}, ${this.saturation}%, ${this.lightness + 5}%, 0.4)`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    // Bell (dome)
+    ctx.beginPath();
+    ctx.moveTo(x - bellW, y);
+    ctx.bezierCurveTo(
+      x - bellW, y - bellH * 1.2,
+      x + bellW, y - bellH * 1.2,
+      x + bellW, y
+    );
+    ctx.bezierCurveTo(
+      x + bellW * 0.8, y + bellH * 0.4,
+      x - bellW * 0.8, y + bellH * 0.4,
+      x - bellW, y
+    );
+
+    const bellGrad = ctx.createRadialGradient(x, y - bellH * 0.3, 0, x, y, bellW);
+    bellGrad.addColorStop(0, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness + 25}%, 0.9)`);
+    bellGrad.addColorStop(0.5, `hsla(${this.hue}, ${this.saturation}%, ${this.lightness}%, 0.6)`);
+    bellGrad.addColorStop(1, `hsla(${this.hue + 40}, ${this.saturation - 20}%, ${this.lightness - 10}%, 0.2)`);
+    ctx.fillStyle = bellGrad;
+    ctx.fill();
+
+    // Bell rim glow
+    ctx.beginPath();
+    ctx.moveTo(x - bellW, y);
+    ctx.bezierCurveTo(
+      x - bellW * 0.8, y + bellH * 0.4,
+      x + bellW * 0.8, y + bellH * 0.4,
+      x + bellW, y
+    );
+    ctx.strokeStyle = `hsla(${this.hue}, 100%, 80%, 0.6)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Inner organs (cross pattern)
+    ctx.globalAlpha = this.alpha * 0.4;
+    for (let i = 0; i < 4; i++) {
+      const angle = (i / 4) * Math.PI + t * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(x, y - bellH * 0.2);
+      ctx.lineTo(x + Math.cos(angle) * bellW * 0.5, y - bellH * 0.2 + Math.sin(angle) * bellH * 0.3);
+      ctx.strokeStyle = `hsla(${this.hue + 60}, 80%, 70%, 0.5)`;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+
+    // Highlight on top
+    ctx.globalAlpha = this.alpha * 0.5;
+    const hlGrad = ctx.createRadialGradient(x, y - bellH * 0.6, 0, x, y - bellH * 0.6, bellW * 0.4);
+    hlGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
+    hlGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = hlGrad;
+    ctx.beginPath();
+    ctx.arc(x, y - bellH * 0.6, bellW * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+// --- Bubbles ---
+class Bubble {
+  constructor() { this.reset(true); }
+  reset(initial) {
+    this.x = rand(0, W);
+    this.y = initial ? rand(0, H) : H + 10;
+    this.r = rand(1, 5);
+    this.speed = rand(0.3, 1.2);
+    this.wobble = rand(0, Math.PI * 2);
+    this.wobbleSpeed = rand(1, 3);
+    this.alpha = rand(0.2, 0.6);
+  }
+  update(t) {
+    this.y -= this.speed;
+    this.x += Math.sin(t * this.wobbleSpeed + this.wobble) * 0.5;
+    if (this.y < -10) this.reset(false);
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(150, 220, 255, ${this.alpha})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Tiny highlight
+    ctx.beginPath();
+    ctx.arc(this.x - this.r * 0.3, this.y - this.r * 0.3, this.r * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${this.alpha * 0.6})`;
+    ctx.fill();
+  }
+}
+
+// --- Particles (plankton / snow) ---
+class Particle {
+  constructor() {
+    this.x = rand(0, W);
+    this.y = rand(0, H);
+    this.r = rand(0.5, 2);
+    this.speedX = rand(-0.1, 0.1);
+    this.speedY = rand(0.05, 0.3);
+    this.alpha = rand(0.1, 0.4);
+    this.hue = rand(180, 260);
+  }
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    if (this.y > H + 5) { this.y = -5; this.x = rand(0, W); }
+    if (this.x < -5) this.x = W + 5;
+    if (this.x > W + 5) this.x = -5;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, 60%, 70%, ${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+// --- Light rays ---
+class LightRay {
+  constructor() {
+    this.x = rand(0, W);
+    this.width = rand(40, 150);
+    this.alpha = rand(0.02, 0.06);
+    this.speed = rand(0.1, 0.3);
+    this.angle = rand(-0.1, 0.1);
+  }
+  update(t) {
+    this.x += Math.sin(t * 0.1 + this.x * 0.01) * 0.2;
+  }
+  draw() {
+    ctx.save();
+    ctx.globalAlpha = this.alpha;
+    const grad = ctx.createLinearGradient(this.x, 0, this.x, H);
+    grad.addColorStop(0, 'rgba(100, 200, 255, 0.8)');
+    grad.addColorStop(0.6, 'rgba(50, 100, 200, 0.3)');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(this.x - this.width / 2, 0);
+    ctx.lineTo(this.x + this.width / 2, 0);
+    ctx.lineTo(this.x + this.width * 0.8 + this.angle * H, H);
+    ctx.lineTo(this.x - this.width * 0.8 + this.angle * H, H);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// --- Seafloor silhouette ---
+function drawSeafloor(t) {
+  ctx.beginPath();
+  ctx.moveTo(0, H);
+  for (let x = 0; x <= W; x += 20) {
+    const y = H - 30 - Math.sin(x * 0.01 + 1) * 20 - Math.sin(x * 0.03) * 10;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  const sfGrad = ctx.createLinearGradient(0, H - 80, 0, H);
+  sfGrad.addColorStop(0, 'rgba(5, 15, 30, 0.8)');
+  sfGrad.addColorStop(1, 'rgba(2, 5, 15, 1)');
+  ctx.fillStyle = sfGrad;
+  ctx.fill();
+
+  // Small glowing dots on seafloor (bioluminescent organisms)
+  for (let i = 0; i < 8; i++) {
+    const sx = (i / 8) * W + Math.sin(t * 0.5 + i) * 10;
+    const sy = H - 35 - Math.sin(sx * 0.01 + 1) * 20 - Math.sin(sx * 0.03) * 10;
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 8);
+    glow.addColorStop(0, `hsla(${150 + i * 20}, 100%, 60%, ${0.3 + Math.sin(t * 2 + i) * 0.2})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// --- Initialize entities ---
+const jellyfish = Array.from({ length: 12 }, () => new Jellyfish());
+const bubbles = Array.from({ length: 40 }, () => new Bubble());
+const particles = Array.from({ length: 80 }, () => new Particle());
+const rays = Array.from({ length: 5 }, () => new LightRay());
+
+// --- Animation loop ---
+let startTime = performance.now();
+
+function animate(now) {
+  const t = (now - startTime) / 1000;
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0a1628');
+  bg.addColorStop(0.3, '#061225');
+  bg.addColorStop(0.7, '#030b1a');
+  bg.addColorStop(1, '#010510');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Light rays
+  rays.forEach(r => { r.update(t); r.draw(); });
+
+  // Particles (behind jellyfish)
+  particles.forEach(p => { p.update(); p.draw(); });
+
+  // Bubbles
+  bubbles.forEach(b => { b.update(t); b.draw(); });
+
+  // Jellyfish (sorted by size for depth illusion)
+  const sorted = [...jellyfish].sort((a, b) => a.size - b.size);
+  sorted.forEach(j => { j.update(t); j.draw(t); });
+
+  // Seafloor
+  drawSeafloor(t);
+
+  // Subtle vignette
+  const vig = ctx.createRadialGradient(W/2, H/2, W * 0.3, W/2, H/2, W * 0.8);
+  vig.addColorStop(0, 'transparent');
+  vig.addColorStop(1, 'rgba(0,0,10,0.5)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, W, H);
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
